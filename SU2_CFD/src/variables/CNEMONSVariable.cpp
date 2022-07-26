@@ -28,22 +28,18 @@
 #include "../../include/variables/CNEMONSVariable.hpp"
 #include <math.h>
 
-CNEMONSVariable::CNEMONSVariable(su2double val_pressure,
-                                 const su2double *val_massfrac,
-                                 const su2double *val_mach,
-                                 su2double val_temperature,
-                                 su2double val_temperature_ve,
-                                 unsigned long npoint,
-                                 unsigned long val_ndim,
-                                 unsigned long val_nvar,
-                                 unsigned long val_nvarprim,
+CNEMONSVariable::CNEMONSVariable(su2double val_density, const su2double *val_massfrac,
+                                 const su2double *val_velocity,
+                                 su2double val_energy, su2double val_energy_ve,
+                                 unsigned long npoint, unsigned long val_ndim,
+                                 unsigned long val_nvar, unsigned long val_nvarprim,
                                  unsigned long val_nvarprimgrad,
                                  const CConfig *config,
-                                 CNEMOGas *fluidmodel) : CNEMOEulerVariable(val_pressure,
+                                 CNEMOGas *fluidmodel) : CNEMOEulerVariable(val_density,
                                                                        val_massfrac,
-                                                                       val_mach,
-                                                                       val_temperature,
-                                                                       val_temperature_ve,
+                                                                       val_velocity,
+                                                                       val_energy,
+                                                                       val_energy_ve,
                                                                        npoint,
                                                                        val_ndim,
                                                                        val_nvar,
@@ -76,12 +72,13 @@ CNEMONSVariable::CNEMONSVariable(su2double val_pressure,
 
 }
 
-bool CNEMONSVariable::SetPrimVar(unsigned long iPoint, CFluidModel *FluidModel) {
+bool CNEMONSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2double turb_ke, CFluidModel *FluidModel) {
 
   fluidmodel = static_cast<CNEMOGas*>(FluidModel);
 
   /*--- Convert conserved to primitive variables ---*/
-  bool nonPhys = Cons2PrimVar(Solution[iPoint], Primitive[iPoint], dPdU[iPoint], dTdU[iPoint], dTvedU[iPoint], eves[iPoint], Cvves[iPoint]);
+  bool nonPhys = Cons2PrimVar(Solution[iPoint], Primitive[iPoint], dPdU[iPoint], dTdU[iPoint], dTvedU[iPoint], eves[iPoint],
+                              Cvves[iPoint], turb_ke);
 
   /*--- Reset solution to previous one, if nonphys ---*/
   if (nonPhys) {
@@ -89,7 +86,8 @@ bool CNEMONSVariable::SetPrimVar(unsigned long iPoint, CFluidModel *FluidModel) 
       Solution(iPoint,iVar) = Solution_Old(iPoint,iVar);
 
     /*--- Recompute Primitive from previous solution ---*/
-    Cons2PrimVar(Solution[iPoint], Primitive[iPoint], dPdU[iPoint], dTdU[iPoint], dTvedU[iPoint], eves[iPoint], Cvves[iPoint]);
+    Cons2PrimVar(Solution[iPoint], Primitive[iPoint], dPdU[iPoint], dTdU[iPoint], dTvedU[iPoint], eves[iPoint],
+                 Cvves[iPoint], turb_ke);
   }
 
   /*--- Set additional point quantities ---*/

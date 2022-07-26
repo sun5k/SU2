@@ -108,11 +108,9 @@ class CNEMOEulerVariable : public CFlowVariable {
    * \param[in] val_nVarPrimGrad - Number of primitive gradient variables.
    * \param[in] config - Definition of the particular problem.
    */
-  CNEMOEulerVariable(su2double val_pressure, const su2double *val_massfrac,
-                     const su2double *val_mach, su2double val_temperature,
-                     su2double val_temperature_ve, unsigned long npoint,
-                     unsigned long ndim,
-                     unsigned long nvar, unsigned long nvalprim,
+  CNEMOEulerVariable(su2double val_density, const su2double *val_massfrac, const su2double *val_velocity,
+                     su2double val_energy, su2double val_energy_ve, unsigned long npoint,
+                     unsigned long ndim, unsigned long nvar, unsigned long nvalprim,
                      unsigned long nvarprimgrad, const CConfig *config, CNEMOGas *fluidmodel);
 
   /*---------------------------------------*/
@@ -167,14 +165,14 @@ class CNEMOEulerVariable : public CFlowVariable {
   /*!
    * \brief Set all the primitive variables for compressible flows.
    */
-  bool SetPrimVar(unsigned long iPoint, CFluidModel *FluidModel) override;
+  bool SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2double turb_ke,  CFluidModel *FluidModel);
 
    /*!
   * \brief Set all the primitive and secondary variables from the conserved vector.
   */
   bool Cons2PrimVar(su2double *U, su2double *V, su2double *dPdU,
                     su2double *dTdU, su2double *dTvedU, su2double *val_eves,
-                    su2double *val_Cvves);
+                    su2double *val_Cvves, su2double turb_ke);
 
   /*---------------------------------------*/
   /*---   Specific variable routines    ---*/
