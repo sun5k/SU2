@@ -172,7 +172,7 @@ public:
   /*!
    * \brief Get T-R and V-E thermal conductivities vector.
    */
-  virtual vector<su2double>& GetThermalConductivities() = 0;
+  virtual vector<su2double>& GetThermalConductivities(su2double Mu_e) = 0;
 
   /*!
    * \brief Compute translational and vibrational temperatures vector.
