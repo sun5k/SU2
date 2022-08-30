@@ -2054,6 +2054,7 @@ void CSU2TCLib::ThermalConductivitiesSuth(su2double Mu_e){
   
   su2double Ru   = 1000.0*UNIVERSAL_GAS_CONSTANT;
   su2double Cptr = Cvtr + Ru/mass;
+  su2double Cpve = scl * Cptr;
 
 //  su2double k = k_ref[0] * T_nd * sqrt(T_nd) * ((T_ref_suth + Sk_ref[0]) / (T + Sk_ref[0]));
 //  su2double kve = scl*k;
