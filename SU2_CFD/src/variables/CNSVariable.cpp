@@ -179,7 +179,7 @@ bool CNSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2doubl
   }
 
   /*--- Set enthalpy ---*/
-
+  //SetEnthalpy(iPoint, turb_ke);
   SetEnthalpy(iPoint); // Requires pressure computation.
 
   /*--- Set laminar viscosity ---*/

@@ -153,6 +153,10 @@ unsigned long CNSSolver::SetPrimitive_Variables(CSolver **solver_container, cons
         nodes->SetDES_LengthScale(iPoint, DES_LengthScale);
       }
     }
+    else if (turb_model != TURB_MODEL::NONE && solver_container[TURB_SOL] == nullptr && tkeNeeded) {
+      turb_ke = config->GetTke_FreeStream();
+    }
+
 
     /*--- Compressible flow, primitive variables nDim+5, (T, vx, vy, vz, P, rho, h, c, lamMu, eddyMu, ThCond, Cp) ---*/
 

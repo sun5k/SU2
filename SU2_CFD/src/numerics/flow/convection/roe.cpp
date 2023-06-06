@@ -95,6 +95,8 @@ void CUpwRoeBase_Flow::FinalizeResidual(su2double *val_residual, su2double **val
 CNumerics::ResidualType<> CUpwRoeBase_Flow::ComputeResidual(const CConfig* config) {
 
   implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
+  bool turbulent          = (config->GetKind_Turb_Model() != TURB_MODEL::NONE);
+  bool tkeNeeded          = (turbulent && config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   unsigned short iVar, jVar, iDim;
   su2double ProjGridVel = 0.0, Energy_i, Energy_j;
@@ -108,6 +110,7 @@ CNumerics::ResidualType<> CUpwRoeBase_Flow::ComputeResidual(const CConfig* confi
     AD::SetPreaccIn(Sensor_i); AD::SetPreaccIn(Sensor_j);
     AD::SetPreaccIn(Dissipation_i); AD::SetPreaccIn(Dissipation_j);
   }
+  if (tkeNeeded)  AD::SetPreaccIn(turb_ke_i); AD::SetPreaccIn(turb_ke_j);
 
   /*--- Face area (norm or the normal vector) and unit normal ---*/
 
@@ -145,8 +148,9 @@ CNumerics::ResidualType<> CUpwRoeBase_Flow::ComputeResidual(const CConfig* confi
     RoeVelocity[iDim] = (R*Velocity_j[iDim]+Velocity_i[iDim])/(R+1);
     sq_vel += RoeVelocity[iDim]*RoeVelocity[iDim];
   }
+  RoeTKE = (R*turb_ke_j+turb_ke_i)/(R+1);
   RoeEnthalpy = (R*Enthalpy_j+Enthalpy_i)/(R+1);
-  RoeSoundSpeed2 = (Gamma-1)*(RoeEnthalpy-0.5*sq_vel);
+  RoeSoundSpeed2 = (Gamma-1)*(RoeEnthalpy-0.5*sq_vel-RoeTKE);
 
   /*--- Negative RoeSoundSpeed^2, the jump variables is too large, clear fluxes and exit. ---*/
 
@@ -170,7 +174,8 @@ CNumerics::ResidualType<> CUpwRoeBase_Flow::ComputeResidual(const CConfig* confi
 
   /*--- P tensor ---*/
 
-  GetPMatrix(&RoeDensity, RoeVelocity, &RoeSoundSpeed, UnitNormal, P_Tensor);
+  //GetPMatrix(&RoeDensity, RoeVelocity, &RoeSoundSpeed, UnitNormal, P_Tensor);
+  GetPMatrix(&RoeDensity, RoeVelocity, &RoeSoundSpeed, &RoeTKE, UnitNormal, P_Tensor); 
 
   /*--- Projected velocity adjusted for mesh motion ---*/
 

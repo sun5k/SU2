@@ -1215,6 +1215,12 @@ public:
    * \brief A virtual member.
    * \param[in] iPoint - Point index.
    */
+  inline virtual void SetEnthalpy(unsigned long iPoint, su2double turb_ke) {}
+  
+  /*!
+   * \brief A virtual member.
+   * \param[in] iPoint - Point index.
+   */
   inline virtual bool SetPrimVar(unsigned long iPoint, CConfig *config) { return true; }
 
   /*!

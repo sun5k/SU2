@@ -121,9 +121,26 @@ class CEulerVariable : public CFlowVariable {
   /*!
    * \brief Set the value of the enthalpy.
    */
-  inline void SetEnthalpy(unsigned long iPoint) final {
+  inline void SetEnthalpy(unsigned long iPoint) {
     Primitive(iPoint, indices.Enthalpy()) =
       (Solution(iPoint,nVar-1) + Primitive(iPoint, indices.Pressure())) / Solution(iPoint,0);
+    su2double temp = 0, TotalE, Press, rho ;
+    
+    temp = (Solution(iPoint,nVar-1) + Primitive(iPoint, indices.Pressure())) / Solution(iPoint,0);
+    TotalE = Solution(iPoint,nVar-1);
+    Press = Primitive(iPoint, indices.Pressure());
+    rho = Solution(iPoint,0);
+  }
+
+  inline void SetEnthalpy(unsigned long iPoint, su2double turb_ke) {
+    Primitive(iPoint, indices.Enthalpy()) =
+      (Solution(iPoint,nVar-1) + Primitive(iPoint, indices.Pressure())) / Solution(iPoint,0) - turb_ke;
+    su2double temp = 0, TotalE, Press, rho ;
+    
+    temp = (Solution(iPoint,nVar-1) + Primitive(iPoint, indices.Pressure())) / Solution(iPoint,0) - turb_ke;
+    TotalE = Solution(iPoint,nVar-1);
+    Press = Primitive(iPoint, indices.Pressure());
+    rho = Solution(iPoint,0);
   }
 
   /*!
@@ -179,6 +196,7 @@ class CEulerVariable : public CFlowVariable {
    */
   inline bool SetDensity(unsigned long iPoint) final {
     Primitive(iPoint, indices.Density()) = Solution(iPoint,0);
+    su2double rho = Solution(iPoint,0);
     return Primitive(iPoint, indices.Density()) <= 0.0;
   }
 

@@ -917,7 +917,9 @@ bool COutput::SetResultFiles(CGeometry *geometry, CConfig *config, CSolver** sol
     /*--- Collect the volume data from the solvers.
      *  If time-domain is enabled, we also load the data although we don't output it,
      *  since we might want to do time-averaging. ---*/
-    const bool write_file = WriteVolumeOutput(config, iter, force_writing || cauchyTimeConverged, iFile);
+    bool write_file = true;
+    write_file = WriteVolumeOutput(config, iter, force_writing || cauchyTimeConverged, iFile);
+    //write_file = true;
 
     if ((write_file || config->GetTime_Domain()) && !dataIsLoaded) {
       LoadDataIntoSorter(config, geometry, solver_container);

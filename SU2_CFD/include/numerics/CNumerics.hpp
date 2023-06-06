@@ -1164,6 +1164,20 @@ public:
                   su2double **val_p_tensor) const;
 
   /*!
+   * \brief Computation of the matrix P, this matrix diagonalize the conservative Jacobians in
+   *        the form $P^{-1}(A.Normal)P=Lambda$.
+   * \param[in] val_density - Value of the density.
+   * \param[in] val_velocity - Value of the velocity.
+   * \param[in] val_soundspeed - Value of the sound speed.
+   * \param[in] val_TKE - Value of the turbulent kientic energy.
+   * \param[in] val_normal - Normal vector, the norm of the vector is the area of the face.
+   * \param[out] val_p_tensor - Pointer to the P matrix.
+   */
+  void GetPMatrix(const su2double *val_density, const su2double *val_velocity,
+                  const su2double *val_soundspeed, const su2double *val_tke,
+                  const su2double *val_normal, su2double **val_p_tensor) const;
+
+  /*!
    * \brief Computation of the matrix Rinv*Pe.
    * \param[in] Beta2 - A variable in used to define Pe matrix.
    * \param[in] val_enthalpy - value of the enthalpy.

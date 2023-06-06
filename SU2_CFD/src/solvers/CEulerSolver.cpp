@@ -62,6 +62,8 @@ CEulerSolver::CEulerSolver(CGeometry *geometry, CConfig *config,
                          (config->GetTime_Marching() == TIME_MARCHING::DT_STEPPING_2ND);
   const bool time_stepping = (config->GetTime_Marching() == TIME_MARCHING::TIME_STEPPING);
   const bool adjoint = config->GetContinuous_Adjoint() || config->GetDiscrete_Adjoint();
+  bool turbulent          = (config->GetKind_Turb_Model() != TURB_MODEL::NONE);
+  bool tkeNeeded          = (turbulent && config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   int Unst_RestartIter = 0;
   unsigned long iPoint, iMarker, counter_local = 0, counter_global = 0;
@@ -292,6 +294,7 @@ CEulerSolver::CEulerSolver(CGeometry *geometry, CConfig *config,
       Velocity2 += pow(nodes->GetSolution(iPoint,iDim+1)/Density,2);
 
     StaticEnergy= nodes->GetEnergy(iPoint) - 0.5*Velocity2;
+    if (tkeNeeded) { StaticEnergy -= config -> GetTke_FreeStream(); }
 
     GetFluidModel()->SetTDState_rhoe(Density, StaticEnergy);
     Pressure= GetFluidModel()->GetPressure();
@@ -1732,6 +1735,12 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
                          (config->GetKind_FluidModel() == IDEAL_GAS);
   const bool low_mach_corr = config->Low_Mach_Correction();
 
+  const TURB_MODEL turb_model = config->GetKind_Turb_Model();
+  const bool tkeNeeded = (turb_model == TURB_MODEL::SST);
+
+  CVariable* turbNodes = nullptr;
+  if (tkeNeeded) turbNodes = solver_container[TURB_SOL]->GetNodes();
+
   /*--- Use vectorization if the scheme supports it. ---*/
   if (config->GetKind_Upwind_Flow() == UPWIND::ROE && ideal_gas && !low_mach_corr) {
     EdgeFluxResidual(geometry, solver_container, config);
@@ -1786,6 +1795,11 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
 
     auto Coord_i = geometry->nodes->GetCoord(iPoint);
     auto Coord_j = geometry->nodes->GetCoord(jPoint);
+     
+    su2double Coord_i_x = Coord_i[0];
+    su2double Coord_i_y = Coord_i[1];
+    su2double Coord_j_x = Coord_j[0];
+    su2double Coord_j_y = Coord_j[1];
 
     /*--- Roe Turkel preconditioning ---*/
 
@@ -1906,6 +1920,12 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
         numerics->SetCoord(Coord_i, Coord_j);
       }
     }
+
+    /*--- Turbulent kinetic energy. ---*/
+
+  if (tkeNeeded)
+    numerics->SetTurbKineticEnergy(turbNodes->GetSolution(iPoint,0),
+                                   turbNodes->GetSolution(jPoint,0));
 
     /*--- Compute the residual ---*/
 
@@ -4511,6 +4531,10 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
                                   geometry->nodes->GetGridVel(iPoint));
       }
 
+      if (config->GetKind_Turb_Model() == TURB_MODEL::SST)
+          conv_numerics->SetTurbKineticEnergy(solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0),
+                                              solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0));
+
       /*--- Compute the convective residual using an upwind scheme ---*/
 
       auto residual = conv_numerics->ComputeResidual(config);
@@ -6926,6 +6950,10 @@ void CEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container,
 
       if (dynamic_grid)
         conv_numerics->SetGridVel(geometry->nodes->GetGridVel(iPoint), geometry->nodes->GetGridVel(iPoint));
+      
+      if (config->GetKind_Turb_Model() == TURB_MODEL::SST)
+       conv_numerics->SetTurbKineticEnergy(solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0)
+                                          ,solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0));
 
       /*--- Compute the residual using an upwind scheme ---*/
 
@@ -7049,8 +7077,15 @@ void CEulerSolver::BC_Supersonic_Inlet(CGeometry *geometry, CSolver **solver_con
 
     /*--- Set various quantities in the solver class ---*/
 
+      const auto Coord_i = geometry->nodes->GetCoord(iPoint);
+      su2double Coord_x = Coord_i[0];
+      su2double Coord_y = Coord_i[1];
+
     conv_numerics->SetNormal(Normal);
     conv_numerics->SetPrimitive(V_domain, V_inlet);
+    if (config->GetKind_Turb_Model() == TURB_MODEL::SST)
+       conv_numerics->SetTurbKineticEnergy(solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0)
+                                          ,solver_container[TURB_SOL]->GetNodes()->GetSolution(iPoint,0));
 
     if (dynamic_grid)
       conv_numerics->SetGridVel(geometry->nodes->GetGridVel(iPoint),
