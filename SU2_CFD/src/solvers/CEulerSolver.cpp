@@ -786,7 +786,6 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
   bool viscous            = config->GetViscous();
   bool gravity            = config->GetGravityForce();
   bool turbulent          = (config->GetKind_Turb_Model() != TURB_MODEL::NONE);
-  bool tkeNeeded          = (turbulent && config->GetKind_Turb_Model() == TURB_MODEL::SST);
   bool free_stream_temp   = (config->GetKind_FreeStreamOption() == FREESTREAM_OPTION::TEMPERATURE_FS);
   bool reynolds_init      = (config->GetKind_InitOption() == REYNOLDS);
   bool aeroelastic        = config->GetAeroelastic_Simulation();
@@ -957,7 +956,7 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
 
   /*-- Compute the freestream energy. ---*/
 
-  if (tkeNeeded) { Energy_FreeStream += Tke_FreeStream; }; config->SetEnergy_FreeStream(Energy_FreeStream);
+  config->SetEnergy_FreeStream(Energy_FreeStream);
 
   /*--- Compute non dimensional quantities. By definition,
      Lref is one because we have converted the grid to meters. ---*/
@@ -1099,8 +1098,6 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
   END_SU2_OMP_PARALLEL
 
   Energy_FreeStreamND = GetFluidModel()->GetStaticEnergy() + 0.5*ModVel_FreeStreamND*ModVel_FreeStreamND;
-
-  if (tkeNeeded) Energy_FreeStreamND += Tke_FreeStreamND;
 
   config->SetEnergy_FreeStreamND(Energy_FreeStreamND);
 
@@ -4339,7 +4336,6 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
 
   bool implicit       = config->GetKind_TimeIntScheme() == EULER_IMPLICIT;
   bool viscous        = config->GetViscous();
-  bool tkeNeeded = config->GetKind_Turb_Model() == TURB_MODEL::SST;
 
   auto *Normal = new su2double[nDim];
 
@@ -4489,7 +4485,6 @@ void CEulerSolver::BC_Far_Field(CGeometry *geometry, CSolver **solver_container,
       }
       Pressure = Density*SoundSpeed*SoundSpeed/Gamma;
       Energy   = Pressure/(Gamma_Minus_One*Density) + 0.5*Velocity2;
-      if (tkeNeeded) Energy += GetTke_Inf();
 
       /*--- Store new primitive state for computing the flux. ---*/
 
@@ -4594,7 +4589,6 @@ void CEulerSolver::BC_Riemann(CGeometry *geometry, CSolver **solver_container,
   string Marker_Tag         = config->GetMarker_All_TagBound(val_marker);
   bool viscous              = config->GetViscous();
   bool gravity = config->GetGravityForce();
-  bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   su2double *Normal, *FlowDirMix, TangVelocity, NormalVelocity;
   Normal = new su2double[nDim];
@@ -4716,7 +4710,6 @@ void CEulerSolver::BC_Riemann(CGeometry *geometry, CSolver **solver_container,
         Density_e = GetFluidModel()->GetDensity();
         StaticEnergy_e = GetFluidModel()->GetStaticEnergy();
         Energy_e = StaticEnergy_e + 0.5 * Velocity2_e;
-        if (tkeNeeded) Energy_e += GetTke_Inf();
         break;
 
       case STATIC_SUPERSONIC_INFLOW_PT:
@@ -4743,7 +4736,6 @@ void CEulerSolver::BC_Riemann(CGeometry *geometry, CSolver **solver_container,
         Density_e = GetFluidModel()->GetDensity();
         StaticEnergy_e = GetFluidModel()->GetStaticEnergy();
         Energy_e = StaticEnergy_e + 0.5 * Velocity2_e;
-        if (tkeNeeded) Energy_e += GetTke_Inf();
         break;
 
       case STATIC_SUPERSONIC_INFLOW_PD:
@@ -4771,7 +4763,6 @@ void CEulerSolver::BC_Riemann(CGeometry *geometry, CSolver **solver_container,
         Density_e = GetFluidModel()->GetDensity();
         StaticEnergy_e = GetFluidModel()->GetStaticEnergy();
         Energy_e = StaticEnergy_e + 0.5 * Velocity2_e;
-        if (tkeNeeded) Energy_e += GetTke_Inf();
         break;
 
       case DENSITY_VELOCITY:
@@ -5108,7 +5099,6 @@ void CEulerSolver::BC_TurboRiemann(CGeometry *geometry, CSolver **solver_contain
   unsigned short nSpanWiseSections = geometry->GetnSpanWiseSections(config->GetMarker_All_TurbomachineryFlag(val_marker));
   bool viscous = config->GetViscous();
   bool gravity = (config->GetGravityForce());
-  bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   su2double *Normal, *turboNormal, *UnitNormal, *FlowDirMix, FlowDirMixMag, *turboVelocity;
   Normal = new su2double[nDim];
@@ -5231,7 +5221,6 @@ void CEulerSolver::BC_TurboRiemann(CGeometry *geometry, CSolver **solver_contain
             Density_e = GetFluidModel()->GetDensity();
             StaticEnergy_e = GetFluidModel()->GetStaticEnergy();
             Energy_e = StaticEnergy_e + 0.5 * Velocity2_e;
-            if (tkeNeeded) Energy_e += GetTke_Inf();
             break;
 
           case MIXING_IN:
@@ -5266,7 +5255,6 @@ void CEulerSolver::BC_TurboRiemann(CGeometry *geometry, CSolver **solver_contain
             Density_e = GetFluidModel()->GetDensity();
             StaticEnergy_e = GetFluidModel()->GetStaticEnergy();
             Energy_e = StaticEnergy_e + 0.5 * Velocity2_e;
-            // if (tkeNeeded) Energy_e += GetTke_Inf();
             break;
 
 
@@ -6525,7 +6513,6 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
   const su2double Gas_Constant = config->GetGas_ConstantND();
   const auto Kind_Inlet = config->GetKind_Inlet();
   const auto Marker_Tag = config->GetMarker_All_TagBound(val_marker);
-  const bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   /*--- Loop over all the vertices on this boundary marker ---*/
 
@@ -6666,7 +6653,6 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
           /*--- Using pressure, density, & velocity, compute the energy ---*/
 
           Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-          if (tkeNeeded) Energy += GetTke_Inf();
 
           /*--- Primitive variables, using the derived quantities ---*/
 
@@ -6728,7 +6714,6 @@ void CEulerSolver::BC_Inlet(CGeometry *geometry, CSolver **solver_container,
           /*--- Energy for the fictitious inlet state ---*/
 
           Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Vel_Mag*Vel_Mag;
-          if (tkeNeeded) Energy += GetTke_Inf();
 
           /*--- Primitive variables, using the derived quantities ---*/
 
@@ -6826,7 +6811,6 @@ void CEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container,
   su2double Gas_Constant     = config->GetGas_ConstantND();
   string Marker_Tag       = config->GetMarker_All_TagBound(val_marker);
   bool gravity = (config->GetGravityForce());
-  bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   auto *Normal = new su2double[nDim];
 
@@ -6909,7 +6893,6 @@ void CEulerSolver::BC_Outlet(CGeometry *geometry, CSolver **solver_container,
           Velocity2 += Velocity[iDim]*Velocity[iDim];
         }
         Energy = P_Exit/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-        if (tkeNeeded) Energy += GetTke_Inf();
 
         /*--- Conservative variables, using the derived quantities ---*/
         V_outlet[0] = Pressure / ( Gas_Constant * Density);
@@ -6992,7 +6975,6 @@ void CEulerSolver::BC_Supersonic_Inlet(CGeometry *geometry, CSolver **solver_con
   const su2double Gas_Constant = config->GetGas_ConstantND();
   const bool implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
   const auto Marker_Tag = config->GetMarker_All_TagBound(val_marker);
-  const bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   /*--- Supersonic inlet flow: there are no outgoing characteristics,
    so all flow variables can be imposed at the inlet.
@@ -7014,7 +6996,6 @@ void CEulerSolver::BC_Supersonic_Inlet(CGeometry *geometry, CSolver **solver_con
 
   const su2double Velocity2 = GeometryToolbox::SquaredNorm(int(MAXNDIM), Velocity);
   su2double Energy = Pressure / (Density * Gamma_Minus_One) + 0.5 * Velocity2;
-  if (tkeNeeded) Energy += GetTke_Inf();
 
   /*--- Loop over all the vertices on this boundary marker ---*/
 
@@ -7208,7 +7189,6 @@ void CEulerSolver::BC_Engine_Inflow(CGeometry *geometry, CSolver **solver_contai
   unsigned short Kind_Engine_Inflow = config->GetKind_Engine_Inflow();
   su2double Gas_Constant = config->GetGas_ConstantND();
   string Marker_Tag = config->GetMarker_All_TagBound(val_marker);
-  bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
   su2double Baseline_Press = 0.75 * config->GetPressure_FreeStreamND();
   bool Engine_HalfModel = config->GetEngine_HalfModel();
 
@@ -7333,7 +7313,6 @@ void CEulerSolver::BC_Engine_Inflow(CGeometry *geometry, CSolver **solver_contai
       }
 
       Energy = Inflow_Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-      if (tkeNeeded) Energy += GetTke_Inf();
 
       /*--- Conservative variables, using the derived quantities ---*/
 
@@ -7424,7 +7403,6 @@ void CEulerSolver::BC_Engine_Exhaust(CGeometry *geometry, CSolver **solver_conta
   su2double Gas_Constant = config->GetGas_ConstantND();
   bool implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
   string Marker_Tag = config->GetMarker_All_TagBound(val_marker);
-  bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
   su2double DampingFactor = config->GetDamp_Engine_Exhaust();
   su2double Baseline_Press = 0.75 * config->GetPressure_FreeStreamND();
 
@@ -7569,7 +7547,6 @@ void CEulerSolver::BC_Engine_Exhaust(CGeometry *geometry, CSolver **solver_conta
         /*--- Using pressure, density, & velocity, compute the energy ---*/
 
         Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-        if (tkeNeeded) Energy += GetTke_Inf();
 
         /*--- Primitive variables, using the derived quantities ---*/
 
@@ -7714,7 +7691,6 @@ void CEulerSolver::BC_ActDisk(CGeometry *geometry, CSolver **solver_container, C
 
   bool implicit           = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
   su2double Gas_Constant  = config->GetGas_ConstantND();
-  bool tkeNeeded          = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
   bool ratio              = (config->GetActDisk_Jump() == RATIO);
   su2double SecondaryFlow = config->GetSecondaryFlow_ActDisk();
 
@@ -7858,7 +7834,6 @@ void CEulerSolver::BC_ActDisk(CGeometry *geometry, CSolver **solver_container, C
           Velocity2 += Velocity[iDim]*Velocity[iDim];
         }
         Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-        if (tkeNeeded) Energy += GetTke_Inf();
 
         /*--- Conservative variables, using the derived quantities ---*/
 
@@ -8013,7 +7988,6 @@ void CEulerSolver::BC_ActDisk(CGeometry *geometry, CSolver **solver_container, C
         /*--- Using pressure, density, & velocity, compute the energy ---*/
 
         Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-        if (tkeNeeded) Energy += GetTke_Inf();
 
         /*--- Primitive variables, using the derived quantities ---*/
 
@@ -8140,7 +8114,6 @@ void CEulerSolver::BC_ActDisk_VariableLoad(CGeometry *geometry, CSolver **solver
 
   const bool implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
   const auto Gas_Constant = config->GetGas_ConstantND();
-  const bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST);
 
   /*--- Get the actuator disk center and axis coordinates for the current marker. ---*/
   for (iDim = 0; iDim < nDim; iDim++){
@@ -8251,7 +8224,6 @@ void CEulerSolver::BC_ActDisk_VariableLoad(CGeometry *geometry, CSolver **solver
           Velocity2 += Velocity[iDim]*Velocity[iDim];
         }
         Energy = Pressure/(Density*Gamma_Minus_One) + 0.5*Velocity2;
-        if (tkeNeeded) Energy += GetTke_Inf();
 
         /*--- Conservative variables, using the derived quantities ---*/
 
@@ -8299,7 +8271,6 @@ void CEulerSolver::BC_ActDisk_VariableLoad(CGeometry *geometry, CSolver **solver
         /*--- Computation of the enthalpy, total energy, temperature and speed of sound. ---*/
         H_out = H_in/Density_in + Fa/Density_out;
         Energy = H_out - Pressure_out/Density_out;
-        if (tkeNeeded) Energy += GetTke_Inf();
         Temperature_out = (Energy-0.5*Velocity2/(pow(Density_out,2)))*(Gamma_Minus_One/Gas_Constant);
 
         SoS_out = sqrt(Gamma*Gas_Constant*Temperature_out);

@@ -139,7 +139,7 @@ bool CNSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2doubl
 
   SetVelocity(iPoint); // Computes velocity and velocity^2
   su2double density      = GetDensity(iPoint);
-  su2double staticEnergy = GetEnergy(iPoint)-0.5*Velocity2(iPoint) - turb_ke;
+  su2double staticEnergy = GetEnergy(iPoint)-0.5*Velocity2(iPoint) ;
 
   /*--- Check will be moved inside fluid model plus error description strings ---*/
 
@@ -163,7 +163,7 @@ bool CNSVariable::SetPrimVar(unsigned long iPoint, su2double eddy_visc, su2doubl
 
     SetVelocity(iPoint); // Computes velocity and velocity^2
     density      = GetDensity(iPoint);
-    staticEnergy = GetEnergy(iPoint)-0.5*Velocity2(iPoint) - turb_ke;
+    staticEnergy = GetEnergy(iPoint)-0.5*Velocity2(iPoint) ;
 
     /*--- Check will be moved inside fluid model plus error description strings ---*/
 
