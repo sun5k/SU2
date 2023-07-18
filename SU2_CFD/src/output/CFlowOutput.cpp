@@ -970,6 +970,15 @@ void CFlowOutput::AddHistoryOutputFields_ScalarRMS_RES(const CConfig* config) {
       AddHistoryOutput("RMS_DISSIPATION", "rms[w]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of dissipation (SST model).", HistoryFieldType::RESIDUAL);
       break;
 
+    case TURB_FAMILY::EQ3:
+      /// DESCRIPTION: Root-mean square residual of kinetic energy (k-w-g model).
+      AddHistoryOutput("RMS_TKE", "rms[k]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of kinetic energy (k-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Root-mean square residual of the dissipation (K-w-g model).
+      AddHistoryOutput("RMS_DISSIPATION", "rms[w]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of dissipation (k-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Root-mean square residual of the dissipation (K-w-g model).
+      AddHistoryOutput("RMS_INTERMITTENCY", "rms[g]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of intermittency (k-w-g model).", HistoryFieldType::RESIDUAL);
+      break;
+
     case TURB_FAMILY::NONE: break;
   }
   switch (config->GetKind_Trans_Model()) {
@@ -1003,6 +1012,15 @@ void CFlowOutput::AddHistoryOutputFields_ScalarMAX_RES(const CConfig* config) {
       AddHistoryOutput("MAX_TKE", "max[k]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of kinetic energy (SST model).", HistoryFieldType::RESIDUAL);
       /// DESCRIPTION: Maximum residual of the dissipation (SST model).
       AddHistoryOutput("MAX_DISSIPATION", "max[w]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of dissipation (SST model).", HistoryFieldType::RESIDUAL);
+      break;
+
+    case TURB_FAMILY::EQ3:
+      /// DESCRIPTION: Maximum residual of kinetic energy (K-w-g model).
+      AddHistoryOutput("MAX_TKE", "max[k]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of kinetic energy (K-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Maximum residual of the dissipation (K-w-g model).
+      AddHistoryOutput("MAX_DISSIPATION", "max[w]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of dissipation (K-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Maximum residual of the dissipation (K-w-g model).
+      AddHistoryOutput("MAX_INTERMITTENCY", "max[g]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of intermittency (K-w-g model).", HistoryFieldType::RESIDUAL);
       break;
 
     case TURB_FAMILY::NONE:
@@ -1043,6 +1061,15 @@ void CFlowOutput::AddHistoryOutputFields_ScalarBGS_RES(const CConfig* config) {
       AddHistoryOutput("BGS_TKE", "bgs[k]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of kinetic energy (SST model).", HistoryFieldType::RESIDUAL);
       /// DESCRIPTION: Maximum residual of the dissipation (SST model).
       AddHistoryOutput("BGS_DISSIPATION", "bgs[w]",  ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of dissipation (SST model).", HistoryFieldType::RESIDUAL);
+      break;
+
+    case TURB_FAMILY::EQ3:
+      /// DESCRIPTION: Maximum residual of kinetic energy (K-w-g model).
+      AddHistoryOutput("BGS_TKE", "bgs[k]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of kinetic energy (K-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Maximum residual of the dissipation (K-w-g model).
+      AddHistoryOutput("BGS_DISSIPATION", "bgs[w]",  ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of dissipation (K-w-g model).", HistoryFieldType::RESIDUAL);
+      /// DESCRIPTION: Maximum residual of the dissipation (K-w-g model).
+      AddHistoryOutput("BGS_INTERMITTENCY", "bgs[g]",  ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of dissipation (K-w-g model).", HistoryFieldType::RESIDUAL);
       break;
 
     case TURB_FAMILY::NONE: break;
@@ -1105,6 +1132,20 @@ void CFlowOutput::LoadHistoryDataScalar(const CConfig* config, const CSolver* co
       }
       break;
 
+    case TURB_FAMILY::EQ3:
+      SetHistoryOutputValue("RMS_TKE", log10(solver[TURB_SOL]->GetRes_RMS(0)));
+      SetHistoryOutputValue("RMS_DISSIPATION",log10(solver[TURB_SOL]->GetRes_RMS(1)));
+      SetHistoryOutputValue("RMS_INTERMITTENCY",log10(solver[TURB_SOL]->GetRes_RMS(2)));
+      SetHistoryOutputValue("MAX_TKE", log10(solver[TURB_SOL]->GetRes_Max(0)));
+      SetHistoryOutputValue("MAX_DISSIPATION", log10(solver[TURB_SOL]->GetRes_Max(1)));
+      SetHistoryOutputValue("MAX_INTERMITTENCY", log10(solver[TURB_SOL]->GetRes_Max(2)));
+      if (multiZone) {
+        SetHistoryOutputValue("BGS_TKE", log10(solver[TURB_SOL]->GetRes_BGS(0)));
+        SetHistoryOutputValue("BGS_DISSIPATION", log10(solver[TURB_SOL]->GetRes_BGS(1)));
+        SetHistoryOutputValue("RMS_INTERMITTENCY",log10(solver[TURB_SOL]->GetRes_BGS(2)));
+      }
+      break;
+
     case TURB_FAMILY::NONE: break;
   }
 
@@ -1157,6 +1198,12 @@ void CFlowOutput::SetVolumeOutputFieldsScalarSolution(const CConfig* config){
       AddVolumeOutput("DISSIPATION", "Omega", "SOLUTION", "Rate of dissipation");
       break;
 
+    case TURB_FAMILY::EQ3:
+      AddVolumeOutput("TKE", "Turb_Kin_Energy", "SOLUTION", "Turbulent kinetic energy");
+      AddVolumeOutput("DISSIPATION", "Omega", "SOLUTION", "Rate of dissipation");
+      AddVolumeOutput("INTERMITTENCY", "Gamma", "SOLUTION", "Intermittency");
+      break;
+
     case TURB_FAMILY::NONE:
       break;
   }
@@ -1189,6 +1236,12 @@ void CFlowOutput::SetVolumeOutputFieldsScalarResidual(const CConfig* config) {
     case TURB_FAMILY::KW:
       AddVolumeOutput("RES_TKE", "Residual_TKE", "RESIDUAL", "Residual of turbulent kinetic energy");
       AddVolumeOutput("RES_DISSIPATION", "Residual_Omega", "RESIDUAL", "Residual of the rate of dissipation");
+      break;
+
+    case TURB_FAMILY::EQ3:
+      AddVolumeOutput("RES_TKE", "Residual_TKE", "RESIDUAL", "Residual of turbulent kinetic energy");
+      AddVolumeOutput("RES_DISSIPATION", "Residual_Omega", "RESIDUAL", "Residual of the rate of dissipation");
+      AddVolumeOutput("RES_INTERMITTENCY", "Residual_Gamma", "RESIDUAL", "Residual of the intermittency");
       break;
 
     case TURB_FAMILY::NONE:
@@ -1224,6 +1277,12 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       case TURB_FAMILY::KW:
         AddVolumeOutput("LIMITER_TKE", "Limiter_TKE", "LIMITER", "Limiter value of turb. kinetic energy");
         AddVolumeOutput("LIMITER_DISSIPATION", "Limiter_Omega", "LIMITER", "Limiter value of dissipation rate");
+        break;
+
+      case TURB_FAMILY::EQ3:
+        AddVolumeOutput("LIMITER_TKE", "Limiter_TKE", "LIMITER", "Limiter value of turb. kinetic energy");
+        AddVolumeOutput("LIMITER_DISSIPATION", "Limiter_Omega", "LIMITER", "Limiter value of dissipation rate");
+        AddVolumeOutput("LIMITER_INTERMITTENCY", "Limiter_Gamma", "LIMITER", "Limiter value of intermittency");
         break;
 
       case TURB_FAMILY::NONE:
@@ -1317,6 +1376,20 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       if (limiter) {
         SetVolumeOutputValue("LIMITER_TKE", iPoint, Node_Turb->GetLimiter(iPoint, 0));
         SetVolumeOutputValue("LIMITER_DISSIPATION", iPoint, Node_Turb->GetLimiter(iPoint, 1));
+      }
+      break;
+
+    case TURB_FAMILY::EQ3:
+      SetVolumeOutputValue("TKE", iPoint, Node_Turb->GetSolution(iPoint, 0));
+      SetVolumeOutputValue("DISSIPATION", iPoint, Node_Turb->GetSolution(iPoint, 1));
+      SetVolumeOutputValue("INTERMITTENCY", iPoint, Node_Turb->GetSolution(iPoint, 2));
+      SetVolumeOutputValue("RES_TKE", iPoint, turb_solver->LinSysRes(iPoint, 0));
+      SetVolumeOutputValue("RES_DISSIPATION", iPoint, turb_solver->LinSysRes(iPoint, 1));
+      SetVolumeOutputValue("RES_INTERMITTENCY", iPoint, turb_solver->LinSysRes(iPoint, 2));
+      if (limiter) {
+        SetVolumeOutputValue("LIMITER_TKE", iPoint, Node_Turb->GetLimiter(iPoint, 0));
+        SetVolumeOutputValue("LIMITER_DISSIPATION", iPoint, Node_Turb->GetLimiter(iPoint, 1));
+        SetVolumeOutputValue("LIMITER_INTERMITTENCY", iPoint, Node_Turb->GetLimiter(iPoint, 2));
       }
       break;
 
@@ -2393,6 +2466,9 @@ void CFlowOutput::WriteForcesBreakdown(const CConfig* config, const CSolver* flo
             file << "Menter's SST with sustaining terms\n";
           else
             file << "Menter's SST\n";
+         break;
+        case TURB_MODEL::EQ3:
+            file << "3 equation model\n";
          break;
       }
       if (transition) {

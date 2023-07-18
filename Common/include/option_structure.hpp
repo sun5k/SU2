@@ -926,11 +926,13 @@ enum class TURB_MODEL {
   NONE,      /*!< \brief No turbulence model. */
   SA,        /*!< \brief Kind of Turbulent model (Spalart-Allmaras). */
   SST,       /*!< \brief Kind of Turbulence model (Menter SST). */
+  EQ3,       /*!< \brief Kind of Turbulence model (3 equation models). */
 };
 static const MapType<std::string, TURB_MODEL> Turb_Model_Map = {
   MakePair("NONE", TURB_MODEL::NONE)
   MakePair("SA", TURB_MODEL::SA)
   MakePair("SST", TURB_MODEL::SST)
+  MakePair("EQ3", TURB_MODEL::EQ3)
 };
 
 /*!
@@ -940,6 +942,7 @@ enum class TURB_FAMILY {
   NONE,   /*!< \brief No turbulence model. */
   SA,     /*!< \brief Spalart-Allmaras variants. */
   KW,     /*!< \brief k-w models. */
+  EQ3,     /*!< \brief 3 equation models. */
 };
 /*!
  * \brief Associate turb models with their family
@@ -952,8 +955,74 @@ inline TURB_FAMILY TurbModelFamily(TURB_MODEL model) {
       return TURB_FAMILY::SA;
     case TURB_MODEL::SST:
       return TURB_FAMILY::KW;
+    case TURB_MODEL::EQ3:
+    return TURB_FAMILY::EQ3;
   }
   return TURB_FAMILY::NONE;
+}
+
+/*!
+ * \brief EQ3 Options
+ */
+enum class EQ3_OPTIONS {
+  NONE,        /*!< \brief No 3 equation model. */
+  KOG,       /*!< \brief k-w-gamma model. */
+  Fu2013,       /*!< \brief Fu and Wang k-w-gamma model. */
+  EXP,       /*!< \brief EXP model. */
+};
+
+static const MapType<std::string, EQ3_OPTIONS> EQ3_Options_Map = {
+  MakePair("NONE", EQ3_OPTIONS::NONE)
+  MakePair("KOG", EQ3_OPTIONS::KOG)
+  MakePair("Fu2013", EQ3_OPTIONS::Fu2013)
+  MakePair("EXPERIMENTAL", EQ3_OPTIONS::EXP)
+};
+
+/*!
+ * \brief Structure containing parsed SST options.
+ */
+struct EQ3_ParsedOptions {
+  EQ3_OPTIONS version = EQ3_OPTIONS::NONE;   /*!< \brief Enum 3 equation base model. */
+  bool Fu_Wang_2013 = false; /*!< \brief Use Fu and Wang Model */  
+};
+
+/*!
+ * \brief Function to parse 3 equation options.
+ * \param[in] EQ3_Options - Selected SST option from config.
+ * \param[in] nEQ3_Options - Number of options selected.
+ * \param[in] rank - MPI rank.
+ * \return Struct with 3 equation options.
+ */
+inline EQ3_ParsedOptions ParseEQ3Options(const EQ3_OPTIONS *EQ3_Options, unsigned short nEQ3_Options, int rank) {
+  EQ3_ParsedOptions EQ3ParsedOptions;
+
+  auto IsPresent = [&](EQ3_OPTIONS option) {
+    const auto eq3_options_end = EQ3_Options + nEQ3_Options;
+    return std::find(EQ3_Options, eq3_options_end, option) != eq3_options_end;
+  };
+
+  const bool found_kog = IsPresent(EQ3_OPTIONS::KOG);  
+
+  if (found_kog) {
+    EQ3ParsedOptions.version = EQ3_OPTIONS::KOG;
+  } 
+  EQ3ParsedOptions.Fu_Wang_2013 = IsPresent(EQ3_OPTIONS::Fu2013);
+  /*
+  if (sst_1994 && sst_2003) {
+    SU2_MPI::Error("Two versions (1994 and 2003) selected for SST_OPTIONS. Please choose only one.", CURRENT_FUNCTION);
+  } else if (sst_2003) {
+    SSTParsedOptions.version = SST_OPTIONS::V2003;
+  } else {
+    SSTParsedOptions.version = SST_OPTIONS::V1994;
+
+    if (rank==MASTER_NODE) {
+      std::cout <<
+        "WARNING: The current SST-1994m model is inconsistent with literature. We recommend using the SST-2003m model.\n"
+        "In SU2 v8 the 2003m model will become default, and the inconsistency will be fixed." << std::endl;
+    }
+  }
+  */
+  return EQ3ParsedOptions;
 }
 
 /*!

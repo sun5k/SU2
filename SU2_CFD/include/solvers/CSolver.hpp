@@ -3154,6 +3154,24 @@ public:
   inline virtual su2double GetOmega_Inf(void) const { return 0; }
 
   /*!
+   * \brief A virtual member.
+   * \return Value of the EQ3_vari 1.
+   */
+  inline virtual su2double GetEQ3_1_Inf(void) const { return 0; }
+  
+  /*!
+   * \brief A virtual member.
+   * \return Value of the EQ3_vari 2.
+   */
+  inline virtual su2double GetEQ3_2_Inf(void) const { return 0; }
+
+  /*!
+   * \brief A virtual member.
+   * \return Value of the EQ3_vari 3.
+   */
+  inline virtual su2double GetEQ3_3_Inf(void) const { return 0; }
+
+  /*!
    * \brief Get value of the Intermittency.
    * \return Value of the Intermittency.
    */

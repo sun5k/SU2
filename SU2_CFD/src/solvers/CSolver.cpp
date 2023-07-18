@@ -3649,6 +3649,11 @@ void CSolver::LoadInletProfile(CGeometry **geometry,
         columnName << "TKE        " << setw(24) << "DISSIPATION" << setw(24);
         columnValue << config->GetTke_FreeStream() << "\t" << config->GetOmega_FreeStream() <<"\t";
         break;
+      case TURB_FAMILY::EQ3:
+        /*--- 2-equation turbulence model (SST) ---*/
+        columnName << "TKE        " << setw(24) << "DISSIPATION" << setw(24) << "INTERMITTENCY" << setw(24);
+        columnValue << config->GetTke_FreeStream() << "\t" << config->GetOmega_FreeStream() <<"\t" << config->GetIntermittency_FreeStream() <<"\t";
+        break;
     }
 
     switch (config->GetKind_Species_Model()) {

@@ -866,3 +866,263 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
     return ResidualType<>(Residual, Jacobian_i, nullptr);
   }
 };
+
+
+/*!
+ * \class CSourcePieceWise_TurbEQ3_KOG
+ * \ingroup SourceDiscr
+ * \brief Class for integrating the source terms of the Menter SST turbulence model equations.
+ */
+template <class FlowIndices>
+class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
+ private:
+  const FlowIndices idx; /*!< \brief Object to manage the access to the flow primitives. */  
+  const bool axisymmetric = false;
+
+  /*--- Closure constants ---*/
+  const su2double sigma_k_1, sigma_k_2, sigma_w_1, sigma_w_2, beta_1, beta_2, beta_star, a1, alfa_1, alfa_2;
+  const su2double prod_lim_const;
+  const su2double C_mu, C_1, C_2, C_3, C_4, C_5, C_6;
+
+  su2double F1_i, F2_i, CDkw_i;
+  su2double Residual[3];
+  su2double* Jacobian_i[3];
+  su2double Jacobian_Buffer[6];  /// Static storage for the Jacobian (which needs to be pointer for return type).
+
+  /*!
+   * \brief Get strain magnitude based on perturbed reynolds stress matrix.
+   * \param[in] turb_ke: turbulent kinetic energy of the node.
+   */
+  inline su2double PerturbedStrainMag(su2double turb_ke) const {
+    /*--- Compute norm of perturbed strain rate tensor. ---*/
+
+    su2double perturbedStrainMag = 0;
+    for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+      for (unsigned short jDim = 0; jDim < nDim; jDim++) {
+        su2double StrainRate_ij = MeanPerturbedRSM[iDim][jDim] - TWO3 * turb_ke * delta[iDim][jDim];
+        StrainRate_ij = -StrainRate_ij * Density_i / (2 * Eddy_Viscosity_i);
+
+        perturbedStrainMag += pow(StrainRate_ij, 2.0);
+      }
+    }
+    return sqrt(2.0 * perturbedStrainMag);
+  }
+  
+ public:
+  /*!
+   * \brief Constructor of the class.
+   * \param[in] val_nDim - Number of dimensions of the problem.
+   * \param[in] constants - SST model constants.
+   * \param[in] val_kine_Inf - Freestream k, for SST with sustaining terms.
+   * \param[in] val_omega_Inf - Freestream w, for SST with sustaining terms.
+   * \param[in] config - Definition of the particular problem.
+   */
+  CSourcePieceWise_TurbEQ3_KOG(unsigned short val_nDim, unsigned short, const su2double* constants, su2double val_kine_Inf,
+                           su2double val_omega_Inf, const CConfig* config)
+      : CNumerics(val_nDim, 2, config),
+        idx(val_nDim, config->GetnSpecies()),
+        axisymmetric(config->GetAxisymmetric()),
+        sigma_k_1(constants[0]),
+        sigma_k_2(constants[1]),
+        sigma_w_1(constants[2]),
+        sigma_w_2(constants[3]),
+        beta_1(constants[4]),
+        beta_2(constants[5]),
+        beta_star(constants[6]),
+        a1(constants[7]),
+        alfa_1(constants[8]),
+        alfa_2(constants[9]),
+        prod_lim_const(constants[10]),
+        C_mu(constants[11]),
+        C_1(constants[12]),
+        C_2(constants[13]),
+        C_3(constants[14]),
+        C_4(constants[15]),
+        C_5(constants[16]),
+        C_6(constants[17]) {
+    /*--- "Allocate" the Jacobian using the static buffer. ---*/
+    Jacobian_i[0] = Jacobian_Buffer;
+    Jacobian_i[1] = Jacobian_Buffer + 2;
+    Jacobian_i[2] = Jacobian_Buffer + 4;
+  }
+
+  /*!
+   * \brief Set the value of the first blending function.
+   * \param[in] val_F1_i - Value of the first blending function at point i.
+   * \param[in] Not used.
+   */
+  inline void SetF1blending(su2double val_F1_i, su2double) override {
+    F1_i = val_F1_i;
+  }
+
+  /*!
+   * \brief Set the value of the second blending function.
+   * \param[in] val_F2_i - Value of the second blending function at point i.
+   */
+  inline void SetF2blending(su2double val_F2_i) override {
+    F2_i = val_F2_i;
+  }
+
+  /*!
+   * \brief Set the value of the cross diffusion for the SST model.
+   * \param[in] val_CDkw_i - Value of the cross diffusion at point i.
+   */
+  inline void SetCrossDiff(su2double val_CDkw_i) override {
+    CDkw_i = val_CDkw_i;
+  }
+
+  /*!
+   * \brief Residual for source term integration.
+   * \param[in] config - Definition of the particular problem.
+   * \return A lightweight const-view (read-only) of the residual/flux and Jacobians.
+   */
+  ResidualType<> ComputeResidual(const CConfig* config) override {
+    AD::StartPreacc();
+    AD::SetPreaccIn(StrainMag_i);
+    AD::SetPreaccIn(ScalarVar_i, nVar);
+    AD::SetPreaccIn(ScalarVar_Grad_i, nVar, nDim);
+    AD::SetPreaccIn(Volume);
+    AD::SetPreaccIn(dist_i);
+    AD::SetPreaccIn(F1_i);
+    AD::SetPreaccIn(F2_i);
+    AD::SetPreaccIn(CDkw_i);
+    AD::SetPreaccIn(PrimVar_Grad_i, nDim + idx.Velocity(), nDim);
+    AD::SetPreaccIn(Vorticity_i, 3);
+    AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
+    AD::SetPreaccIn(V_i[idx.Velocity() + 1]);
+
+    Density_i = V_i[idx.Density()];
+    Laminar_Viscosity_i = V_i[idx.LaminarViscosity()];
+    Eddy_Viscosity_i = V_i[idx.EddyViscosity()];
+
+    Residual[0] = 0.0;
+    Residual[1] = 0.0;
+    Residual[2] = 0.0;
+    Jacobian_i[0][0] = 0.0;
+    Jacobian_i[0][1] = 0.0;
+    Jacobian_i[0][2] = 0.0;
+    Jacobian_i[1][0] = 0.0;
+    Jacobian_i[1][1] = 0.0;
+    Jacobian_i[1][2] = 0.0;
+    Jacobian_i[2][0] = 0.0;
+    Jacobian_i[2][1] = 0.0;
+    Jacobian_i[2][2] = 0.0;
+
+    /*--- Computation of blended constants for the source terms ---*/
+
+    const su2double alfa_blended = F1_i * alfa_1 + (1.0 - F1_i) * alfa_2;
+    const su2double beta_blended = F1_i * beta_1 + (1.0 - F1_i) * beta_2;    
+
+    if (dist_i > 1e-10) {
+      const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
+      su2double diverg = 0.0;
+      for (unsigned short iDim = 0; iDim < nDim; iDim++)
+        diverg += PrimVar_Grad_i[iDim + idx.Velocity()][iDim];
+      if (axisymmetric && Coord_i[1] > EPS) {
+        AD::SetPreaccIn(Coord_i[1]);
+        diverg += V_i[idx.Velocity() + 1] / Coord_i[1];
+      }
+
+      const su2double vel_u = V_i[idx.Velocity()];
+      const su2double vel_v = V_i[1 + idx.Velocity()];
+      const su2double vel_w = (nDim == 3) ? V_i[2 + idx.Velocity()] : 0.0;
+
+      const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
+      const su2double nu = Laminar_Viscosity_i / Density_i;
+
+      su2double Eu = 0.0, F_onset = 0.0;
+      Eu = 0.5*pow(Velocity_Mag,2);
+
+      su2double Eu_i = 0.0 , Eu_j = 0.0, Eu_k = 0.0, norm_Eu = 0.0;
+
+      for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+        Eu_i += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][0];
+        Eu_j += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][1];
+        if(nDim ==3)
+        Eu_k += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][2];
+      }
+      
+      norm_Eu = pow(Eu_i,2) + pow(Eu_j,2) + pow(Eu_k,2);
+      norm_Eu = pow(norm_Eu, 0.5);
+
+      su2double norm_k = 0.0;
+      norm_k = pow(ScalarVar_Grad_i[0][0],2) + pow(ScalarVar_Grad_i[0][1],2) ;
+      if(nDim == 3) norm_k += pow(ScalarVar_Grad_i[0][2],2);
+      norm_k = pow(norm_k, 0.5);
+
+      su2double zeta = 0.0, lengthScale_T = 0.0, lengthScale_B = 0.0, zeta_eff = 0.0;
+      zeta = pow(dist_i,2) * VorticityMag / pow( 2*Eu , 0.5);
+      lengthScale_T = pow(ScalarVar_i[0], 0.5)/(beta_star * ScalarVar_i[1]);
+      lengthScale_B = pow(ScalarVar_i[0], 0.5)/(C_mu * StrainMag_i);      
+      zeta_eff = min(min(zeta, lengthScale_T), lengthScale_B);
+      F_onset = 1-exp(-C_6 * zeta_eff * pow(ScalarVar_i[0],0.5) * norm_k 
+                / ( nu * norm_Eu) );
+      
+      
+      su2double P_Base = 0;
+      P_Base = StrainMag_i;
+
+      /*--- Production limiter. ---*/
+      const su2double prod_limit = prod_lim_const * beta_star * Density_i * ScalarVar_i[1] * ScalarVar_i[0];
+      su2double P = Eddy_Viscosity_i * (pow(P_Base, 2) - 2/3 * pow (diverg,2));
+      su2double pk = max(0.0, min(P, prod_limit));
+      su2double pw = (alfa_blended * Density_i / Eddy_Viscosity_i) * pk;
+
+      
+      su2double pg, MaxLog = 0.0;
+      if( ScalarVar_i[2] == 1.0) {
+        MaxLog = 30.0;
+      }
+      else {
+        MaxLog = log(1.0 - ScalarVar_i[2]);
+        MaxLog = -1.0 * MaxLog;
+        MaxLog = max(0.0, MaxLog);
+        MaxLog = pow( MaxLog, 0.5);
+      }
+      
+      
+      pg = C_4 * Density_i * MaxLog * (1.0 + C_5*pow(ScalarVar_i[0],0.5)/pow(2.0*Eu,0.5)) * dist_i / nu *norm_Eu ;
+
+      /*--- Dissipation ---*/
+
+      su2double dk = beta_star * Density_i * ScalarVar_i[1] * ScalarVar_i[0];
+      su2double dw = beta_blended * Density_i * ScalarVar_i[1] * ScalarVar_i[1];
+      su2double dg = ScalarVar_i[2] * pg;
+
+      /*--- Add the production terms to the residuals. ---*/
+
+      Residual[0] += pk * Volume;
+      Residual[1] += pw * Volume;
+      Residual[2] += pg * F_onset * Volume;
+
+      /*--- Add the dissipation  terms to the residuals.---*/
+
+      Residual[0] -= dk * Volume;
+      Residual[1] -= dw * Volume;
+      Residual[2] -= dg * Volume;
+
+      /*--- Cross diffusion ---*/
+
+      Residual[1] += (1.0 - F1_i) * CDkw_i * Volume;
+
+      /*--- Implicit part ---*/
+
+      Jacobian_i[0][0] = -beta_star * ScalarVar_i[1] * Volume;
+      Jacobian_i[0][1] = -beta_star * ScalarVar_i[0] * Volume;
+      Jacobian_i[0][2] = 0.0;
+
+      Jacobian_i[1][0] = 0.0;
+      Jacobian_i[1][1] = -2.0 * beta_blended * ScalarVar_i[1] * Volume;
+      Jacobian_i[1][2] = 0.0;
+
+      Jacobian_i[2][0] = 0.0;
+      Jacobian_i[2][1] = 0.0;
+      Jacobian_i[2][2] = -pg /Density_i * Volume;
+    }
+
+    AD::SetPreaccOut(Residual, nVar);
+    AD::EndPreacc();
+
+    return ResidualType<>(Residual, Jacobian_i, nullptr);
+  }
+};

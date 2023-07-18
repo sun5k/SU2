@@ -1215,7 +1215,7 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
 
   /*--- Assign turbulence model booleans ---*/
 
-  bool spalart_allmaras = false, menter_sst = false;
+  bool spalart_allmaras = false, menter_sst = false, eq3 = false;
 
   switch (config->GetKind_Turb_Model()) {
     case TURB_MODEL::NONE:
@@ -1227,18 +1227,28 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
     case TURB_MODEL::SST:
       menter_sst = true;
       break;
+    case TURB_MODEL::EQ3:
+      eq3 = true;
+      break;
   }
 
   /*--- If the Menter SST model is used, store the constants of the model and determine the
         free stream values of the turbulent kinetic energy and dissipation rate. ---*/
 
   const su2double *constants = nullptr;
-  su2double kine_Inf = 0.0, omega_Inf = 0.0;
+  su2double kine_Inf = 0.0, omega_Inf = 0.0, eq3_var1_Inf = 0.0, eq3_var2_Inf = 0.0, eq3_var3_Inf = 0.0;
 
   if (menter_sst) {
     constants = turb_solver->GetConstants();
     kine_Inf  = turb_solver->GetTke_Inf();
     omega_Inf = turb_solver->GetOmega_Inf();
+  }
+
+  if (eq3) {
+    constants = turb_solver->GetConstants();
+    eq3_var1_Inf = turb_solver->GetEQ3_1_Inf();
+    eq3_var2_Inf = turb_solver->GetEQ3_2_Inf();
+    eq3_var3_Inf = turb_solver->GetEQ3_3_Inf();
   }
 
   /*--- Definition of the convective scheme for each equation and mesh level ---*/
@@ -1252,8 +1262,12 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
         if (spalart_allmaras) {
           numerics[iMGlevel][TURB_SOL][conv_term] = new CUpwSca_TurbSA<Indices>(nDim, nVar_Turb, config);
         }
-        else if (menter_sst)
+        else if (menter_sst) {
           numerics[iMGlevel][TURB_SOL][conv_term] = new CUpwSca_TurbSST<Indices>(nDim, nVar_Turb, config);
+        }
+        else if (eq3) {
+          numerics[iMGlevel][TURB_SOL][conv_term] = new CUpwSca_TurbEQ3<Indices>(nDim, nVar_Turb, config);
+        }
       }
       break;
     default:
@@ -1271,8 +1285,12 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
         numerics[iMGlevel][TURB_SOL][visc_term] = new CAvgGrad_TurbSA<Indices>(nDim, nVar_Turb, true, config);
       }
     }
-    else if (menter_sst)
+    else if (menter_sst) {
       numerics[iMGlevel][TURB_SOL][visc_term] = new CAvgGrad_TurbSST<Indices>(nDim, nVar_Turb, constants, true, config);
+    }
+    else if (eq3) {
+      numerics[iMGlevel][TURB_SOL][visc_term] = new CAvgGrad_TurbEQ3_KOG<Indices>(nDim, nVar_Turb, constants, true, config);
+    }
   }
 
   /*--- Definition of the source term integration scheme for each equation and mesh level ---*/
@@ -1284,6 +1302,9 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
       turb_source_first_term = SAFactory<Indices>(nDim, config);
     else if (menter_sst)
       turb_source_first_term = new CSourcePieceWise_TurbSST<Indices>(nDim, nVar_Turb, constants, kine_Inf, omega_Inf,
+                                                                     config);
+    else if (eq3)
+      turb_source_first_term = new CSourcePieceWise_TurbEQ3_KOG<Indices>(nDim, nVar_Turb, constants, kine_Inf, omega_Inf,
                                                                      config);
 
     numerics[iMGlevel][TURB_SOL][source_second_term] = new CSourceNothing(nDim, nVar_Turb, config);
@@ -1304,6 +1325,11 @@ void CDriver::InstantiateTurbulentNumerics(unsigned short nVar_Turb, int offset,
     else if (menter_sst) {
       numerics[iMGlevel][TURB_SOL][conv_bound_term] = new CUpwSca_TurbSST<Indices>(nDim, nVar_Turb, config);
       numerics[iMGlevel][TURB_SOL][visc_bound_term] = new CAvgGrad_TurbSST<Indices>(nDim, nVar_Turb, constants, false,
+                                                                                    config);
+    }
+    else if (eq3) {
+      numerics[iMGlevel][TURB_SOL][conv_bound_term] = new CUpwSca_TurbEQ3<Indices>(nDim, nVar_Turb, config);
+      numerics[iMGlevel][TURB_SOL][visc_bound_term] = new CAvgGrad_TurbEQ3_KOG<Indices>(nDim, nVar_Turb, constants, false,
                                                                                     config);
     }
   }

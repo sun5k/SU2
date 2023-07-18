@@ -1100,6 +1100,8 @@ void CConfig::SetConfig_Options() {
   addEnumListOption("SST_OPTIONS", nSST_Options, SST_Options, SST_Options_Map);
   /*!\brief SST_OPTIONS \n DESCRIPTION: Specify SA turbulence model options/corrections. \n Options: see \link SA_Options_Map \endlink \n DEFAULT: NONE \ingroup Config*/
   addEnumListOption("SA_OPTIONS", nSA_Options, SA_Options, SA_Options_Map);
+  /*!\brief EQ3_OPTIONS \n DESCRIPTION: Specify 3 equation turbulence model options/corrections. \n Options: see \link EQ3_Options_Map \endlink \n DEFAULT: NONE \ingroup Config*/
+  addEnumListOption("EQ3_OPTIONS", nEQ3_Options, EQ3_Options, EQ3_Options_Map);
 
   /*!\brief KIND_TRANS_MODEL \n DESCRIPTION: Specify transition model OPTIONS: see \link Trans_Model_Map \endlink \n DEFAULT: NONE \ingroup Config*/
   addEnumOption("KIND_TRANS_MODEL", Kind_Trans_Model, Trans_Model_Map, TURB_TRANS_MODEL::NONE);
@@ -3410,6 +3412,8 @@ void CConfig::SetPostprocessing(SU2_COMPONENT val_software, unsigned short val_i
     sstParsedOptions = ParseSSTOptions(SST_Options, nSST_Options, rank);
   } else if (Kind_Turb_Model == TURB_MODEL::SA) {
     saParsedOptions = ParseSAOptions(SA_Options, nSA_Options, rank);
+  } else if (Kind_Turb_Model == TURB_MODEL::EQ3) {
+    eq3ParsedOptions = ParseEQ3Options(EQ3_Options, nEQ3_Options, rank);
   }
 
   /*--- Check if turbulence model can be used for AXISYMMETRIC case---*/
@@ -5297,6 +5301,8 @@ void CConfig::SetPostprocessing(SU2_COMPONENT val_software, unsigned short val_i
       nTurbVar = 1; break;
     case TURB_FAMILY::KW:
       nTurbVar = 2; break;
+    case TURB_FAMILY::EQ3:
+      nTurbVar = 3; break;
   }
   /*--- Check whether the number of entries of the MARKER_INLET_TURBULENT equals the number of turbulent properties
        used for the respective turbulent model. nTurb_Properties must be equal to 1 or 2 depending on whether SA or
@@ -6026,6 +6032,18 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
             }
             cout << "." << endl;
             break;
+          case TURB_MODEL::EQ3:
+            switch (eq3ParsedOptions.version) {
+              case EQ3_OPTIONS::KOG:
+                cout << "k-w-gamma (transition)";
+                break;
+              default:
+                break;
+            }
+            cout << " : 3 equation model";            
+            if (eq3ParsedOptions.Fu_Wang_2013) cout << " -Fu and Wang (2013)";
+            cout << endl;
+            break;
         }
         switch (Kind_Trans_Model) {
           case TURB_TRANS_MODEL::NONE:  break;
@@ -6054,6 +6072,7 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
               switch (Kind_Turb_Model) {
                 case TURB_MODEL::SA: cout << "Malan et al. (2009)" << endl;  break;
                 case TURB_MODEL::SST: cout << "Menter and Langtry (2009)" << endl;  break;
+                case TURB_MODEL::EQ3: SU2_MPI::Error("3 equation model selected but LM transition model is active.", CURRENT_FUNCTION); break;
                 case TURB_MODEL::NONE: SU2_MPI::Error("No turbulence model has been selected but LM transition model is active.", CURRENT_FUNCTION); break;
               }
               break;

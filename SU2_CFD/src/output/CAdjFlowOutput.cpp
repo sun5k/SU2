@@ -50,6 +50,14 @@ void CAdjFlowOutput::AddHistoryOutputFields_AdjScalarRMS_RES(const CConfig* conf
         /// DESCRIPTION: Root-mean square residual of the adjoint dissipation.
         AddHistoryOutput("RMS_ADJ_DISSIPATION", "rms[A_w]", ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
         break;
+      case TURB_FAMILY::EQ3:
+        /// DESCRIPTION: Root-mean square residual of the adjoint kinetic energy.
+        AddHistoryOutput("RMS_ADJ_TKE", "rms[A_k]", ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of the adjoint kinetic energy.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: Root-mean square residual of the adjoint dissipation.
+        AddHistoryOutput("RMS_ADJ_DISSIPATION", "rms[A_w]", ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: Root-mean square residual of the adjoint intermittency.
+        AddHistoryOutput("RMS_ADJ_INTERMITTENCY", "rms[A_G]", ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of the adjoint intermittency.", HistoryFieldType::RESIDUAL);
+        break;
       case TURB_FAMILY::NONE:
         break;
     }
@@ -74,6 +82,14 @@ void CAdjFlowOutput::AddHistoryOutputFields_AdjScalarMAX_RES(const CConfig* conf
         AddHistoryOutput("MAX_ADJ_TKE", "max[A_k]", ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the adjoint kinetic energy.", HistoryFieldType::RESIDUAL);
         /// DESCRIPTION: Maximum residual of the adjoint dissipation.
         AddHistoryOutput("MAX_ADJ_DISSIPATION", "max[A_w]", ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
+        break;
+      case TURB_FAMILY::EQ3:
+        /// DESCRIPTION: Maximum residual of the adjoint kinetic energy.
+        AddHistoryOutput("MAX_ADJ_TKE", "max[A_k]", ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the adjoint kinetic energy.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: Maximum residual of the adjoint dissipation.
+        AddHistoryOutput("MAX_ADJ_DISSIPATION", "max[A_w]", ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: Root-mean square residual of the adjoint intermittency.
+        AddHistoryOutput("RMS_ADJ_INTERMITTENCY", "max[A_G]", ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the adjoint intermittency.", HistoryFieldType::RESIDUAL);
         break;
       case TURB_FAMILY::NONE:
         break;
@@ -101,6 +117,14 @@ void CAdjFlowOutput::AddHistoryOutputFields_AdjScalarBGS_RES(const CConfig* conf
         AddHistoryOutput("BGS_ADJ_TKE", "bgs[A_k]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the adjoint kinetic energy.", HistoryFieldType::RESIDUAL);
         /// DESCRIPTION: BGS residual of the adjoint dissipation.
         AddHistoryOutput("BGS_ADJ_DISSIPATION", "bgs[A_w]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
+        break;
+      case TURB_FAMILY::EQ3:
+        /// DESCRIPTION: BGS residual of the adjoint kinetic energy.
+        AddHistoryOutput("BGS_ADJ_TKE", "bgs[A_k]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the adjoint kinetic energy.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: BGS residual of the adjoint dissipation.
+        AddHistoryOutput("BGS_ADJ_DISSIPATION", "bgs[A_w]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the adjoint dissipation.", HistoryFieldType::RESIDUAL);
+        /// DESCRIPTION: Root-mean square residual of the adjoint intermittency.
+        AddHistoryOutput("BGS_ADJ__INTERMITTENCY", "bgs[A_G]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the adjoint intermittency.", HistoryFieldType::RESIDUAL);
         break;
       case TURB_FAMILY::NONE:
         break;
@@ -150,6 +174,19 @@ void CAdjFlowOutput::LoadHistoryDataAdjScalar(const CConfig* config, const CSolv
           SetHistoryOutputValue("BGS_ADJ_DISSIPATION", log10(adjturb_solver->GetRes_BGS(1)));
         }
         break;
+      case TURB_FAMILY::EQ3:
+        SetHistoryOutputValue("RMS_ADJ_TKE", log10(adjturb_solver->GetRes_RMS(0)));
+        SetHistoryOutputValue("RMS_ADJ_DISSIPATION", log10(adjturb_solver->GetRes_RMS(1)));
+        SetHistoryOutputValue("RMS_ADJ_INTERMITTENCY", log10(adjturb_solver->GetRes_RMS(2)));
+        SetHistoryOutputValue("MAX_ADJ_TKE", log10(adjturb_solver->GetRes_Max(0)));
+        SetHistoryOutputValue("MAX_ADJ_DISSIPATION", log10(adjturb_solver->GetRes_Max(1)));
+        SetHistoryOutputValue("MAX_ADJ_INTERMITTENCY", log10(adjturb_solver->GetRes_Max(2)));
+        if (multiZone) {
+          SetHistoryOutputValue("BGS_ADJ_TKE", log10(adjturb_solver->GetRes_BGS(0)));
+          SetHistoryOutputValue("BGS_ADJ_DISSIPATION", log10(adjturb_solver->GetRes_BGS(1)));
+          SetHistoryOutputValue("BGS_ADJ_INTERMITTENCY", log10(adjturb_solver->GetRes_BGS(2)));
+        }
+        break;
       case TURB_FAMILY::NONE:
         break;
     }
@@ -189,6 +226,14 @@ void CAdjFlowOutput::SetVolumeOutputFieldsAdjScalarSolution(const CConfig* confi
         /// DESCRIPTION: Adjoint dissipation.
         AddVolumeOutput("ADJ_DISSIPATION", "Adjoint_Omega", "SOLUTION", "Adjoint rate of dissipation");
         break;
+      case TURB_FAMILY::EQ3:
+        /// DESCRIPTION: Adjoint kinetic energy.
+        AddVolumeOutput("ADJ_TKE", "Adjoint_TKE", "SOLUTION", "Adjoint turbulent kinetic energy");
+        /// DESCRIPTION: Adjoint dissipation.
+        AddVolumeOutput("ADJ_DISSIPATION", "Adjoint_Omega", "SOLUTION", "Adjoint rate of dissipation");
+        /// DESCRIPTION: Adjoint intermittency.
+        AddVolumeOutput("ADJ_INTERMITTENCY", "Adjoint_Gamma", "SOLUTION", "Adjoint rate of intermittency");
+        break;
       case TURB_FAMILY::NONE:
         break;
     }
@@ -217,6 +262,17 @@ void CAdjFlowOutput::SetVolumeOutputFieldsAdjScalarResidual(const CConfig* confi
         /// DESCRIPTION: Residual of the adjoint dissipation.
         AddVolumeOutput("RES_ADJ_DISSIPATION", "Residual_Adjoint_Omega", "RESIDUAL",
                         "Residual of adjoint rate of dissipation");
+        break;
+      case TURB_FAMILY::EQ3:
+        /// DESCRIPTION: Residual of the adjoint kinetic energy.
+        AddVolumeOutput("RES_ADJ_TKE", "Residual_Adjoint_TKE", "RESIDUAL",
+                        "Residual of the adjoint turb. kinetic energy");
+        /// DESCRIPTION: Residual of the adjoint dissipation.
+        AddVolumeOutput("RES_ADJ_DISSIPATION", "Residual_Adjoint_Omega", "RESIDUAL",
+                        "Residual of adjoint rate of dissipation");
+        /// DESCRIPTION: Residual of the adjoint dissipation.
+        AddVolumeOutput("RES_ADJ_INTERMITTENCY", "Residual_Adjoint_Gamma", "RESIDUAL",
+                        "Residual of adjoint rate of intermittency");
         break;
       case TURB_FAMILY::NONE:
         break;
