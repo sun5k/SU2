@@ -400,8 +400,10 @@ void CFVMFlowSolverBase<V, R>::Viscous_Residual_impl(unsigned long iEdge, CGeome
                                                      CNumerics *numerics, CConfig *config) {
 
   const bool implicit  = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
+  const bool tkeNeeded = (config->GetKind_Turb_Model() == TURB_MODEL::SST || config->GetKind_Turb_Model() == TURB_MODEL::EQ3 );
 
   CVariable* turbNodes = nullptr;
+  if (tkeNeeded) turbNodes = solver_container[TURB_SOL]->GetNodes();
 
   /*--- Points, coordinates and normal vector in edge ---*/
 
@@ -426,6 +428,12 @@ void CFVMFlowSolverBase<V, R>::Viscous_Residual_impl(unsigned long iEdge, CGeome
   numerics->SetPrimVarGradient(nodes->GetGradient_Primitive(iPoint),
                                nodes->GetGradient_Primitive(jPoint));
 
+  /*--- Turbulent kinetic energy. ---*/
+
+  if (tkeNeeded)
+    numerics->SetTurbKineticEnergy(turbNodes->GetSolution(iPoint,0),
+                                   turbNodes->GetSolution(jPoint,0));  
+  
   /*--- Wall shear stress values (wall functions) ---*/
 
   numerics->SetTau_Wall(nodes->GetTau_Wall(iPoint),

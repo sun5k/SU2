@@ -1778,6 +1778,10 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
 
     auto iPoint = geometry->edges->GetNode(iEdge,0);
     auto jPoint = geometry->edges->GetNode(iEdge,1);
+    su2double temp = geometry->edges->GetNode(iEdge,0);
+    if(temp == 13189) {
+      cout << "stop" << temp << endl; 
+    }
 
     numerics->SetNormal(geometry->edges->GetNormal(iEdge));
 

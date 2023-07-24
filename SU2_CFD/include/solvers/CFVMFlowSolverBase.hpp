@@ -944,6 +944,9 @@ class CFVMFlowSolverBase : public CSolver {
     for (unsigned long iPoint = 0; iPoint < nPointDomain; iPoint++) {
 
       /*--- Multigrid contribution to residual. ---*/
+      if(iPoint == 13189 ) {
+        cout<<"Here is"<< iPoint <<endl;
+        }
 
       su2double* local_Res_TruncError = nodes->GetResTruncError(iPoint);
 
@@ -957,6 +960,7 @@ class CFVMFlowSolverBase : public CSolver {
       for (unsigned short iVar = 0; iVar < nVar; iVar++) {
         unsigned long total_index = iPoint*nVar + iVar;
         LinSysRes[total_index] = - (LinSysRes[total_index] + local_Res_TruncError[iVar]);
+        su2double tempNum1 = LinSysRes[total_index], tempNum2 = local_Res_TruncError[iVar];
         LinSysSol[total_index] = 0.0;
 
         /*--- "Add" residual at (iPoint,iVar) to local residual variables. ---*/

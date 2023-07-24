@@ -342,8 +342,13 @@ void CUpwL2Roe_Flow::FinalizeResidual(su2double *val_residual, su2double **val_J
   /*--- Update residual ---*/
 
   for (iVar = 0; iVar < nVar; iVar++)
-    for (kVar = 0; kVar < nVar; kVar++)
+    for (kVar = 0; kVar < nVar; kVar++) {
       val_residual[iVar] -= (1.0-kappa)*Lambda[kVar]*delta_wave[kVar]*P_Tensor[iVar][kVar]*Area;
+      su2double temp1 = Lambda[kVar], temp2 = delta_wave[kVar], temp3 = P_Tensor[iVar][kVar], temp4 = Area;
+      su2double temp5 = val_residual[iVar];
+      su2double temp6 = 0.0;
+    }
+      
 
   if (!implicit) return;
 

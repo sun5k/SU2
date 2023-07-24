@@ -298,6 +298,9 @@ void CAvgGrad_Base::GetViscousProjJacs(const su2double *val_Mean_PrimVar,
     val_Proj_Jac_Tensor_i[3][2] += factor*val_Proj_Visc_Flux[2];
     val_Proj_Jac_Tensor_j[3][2] += factor*val_Proj_Visc_Flux[2];
 
+    su2double temp1 = val_Proj_Visc_Flux[0], temp2 = val_Proj_Visc_Flux[1], temp3 = val_Proj_Visc_Flux[2], temp4 = val_Proj_Visc_Flux[3] ;
+    su2double temp5 = 0.0;
+
 
   } else {
 
@@ -383,6 +386,8 @@ CNumerics::ResidualType<> CAvgGrad_Flow::ComputeResidual(const CConfig* config) 
 
   for (iVar = 0; iVar < nPrimVar; iVar++) {
     Mean_PrimVar[iVar] = 0.5*(PrimVar_i[iVar]+PrimVar_j[iVar]);
+    su2double temp1 = PrimVar_i[iVar], temp2 = PrimVar_j[iVar] ;
+    su2double temp3 = 0.0;
   }
 
   /*--- Compute vector going from iPoint to jPoint ---*/

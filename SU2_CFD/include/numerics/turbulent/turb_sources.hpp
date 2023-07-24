@@ -887,7 +887,7 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
   su2double F1_i, F2_i, CDkw_i;
   su2double Residual[3];
   su2double* Jacobian_i[3];
-  su2double Jacobian_Buffer[6];  /// Static storage for the Jacobian (which needs to be pointer for return type).
+  su2double Jacobian_Buffer[9];  /// Static storage for the Jacobian (which needs to be pointer for return type).
 
   /*!
    * \brief Get strain magnitude based on perturbed reynolds stress matrix.
@@ -917,9 +917,9 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
    * \param[in] val_omega_Inf - Freestream w, for SST with sustaining terms.
    * \param[in] config - Definition of the particular problem.
    */
-  CSourcePieceWise_TurbEQ3_KOG(unsigned short val_nDim, unsigned short, const su2double* constants, su2double val_kine_Inf,
+  CSourcePieceWise_TurbEQ3_KOG(unsigned short val_nDim, unsigned short val_nVar, const su2double* constants, su2double val_kine_Inf,
                            su2double val_omega_Inf, const CConfig* config)
-      : CNumerics(val_nDim, 2, config),
+      : CNumerics(val_nDim, val_nVar, config),
         idx(val_nDim, config->GetnSpecies()),
         axisymmetric(config->GetAxisymmetric()),
         sigma_k_1(constants[0]),
@@ -942,8 +942,8 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
         C_6(constants[17]) {
     /*--- "Allocate" the Jacobian using the static buffer. ---*/
     Jacobian_i[0] = Jacobian_Buffer;
-    Jacobian_i[1] = Jacobian_Buffer + 2;
-    Jacobian_i[2] = Jacobian_Buffer + 4;
+    Jacobian_i[1] = Jacobian_Buffer + 3;
+    Jacobian_i[2] = Jacobian_Buffer + 6;
   }
 
   /*!
@@ -1011,7 +1011,7 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
     /*--- Computation of blended constants for the source terms ---*/
 
     const su2double alfa_blended = F1_i * alfa_1 + (1.0 - F1_i) * alfa_2;
-    const su2double beta_blended = F1_i * beta_1 + (1.0 - F1_i) * beta_2;    
+    const su2double beta_blended = F1_i * beta_1 + (1.0 - F1_i) * beta_2;
 
     if (dist_i > 1e-10) {
       const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
@@ -1044,6 +1044,11 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
       
       norm_Eu = pow(Eu_i,2) + pow(Eu_j,2) + pow(Eu_k,2);
       norm_Eu = pow(norm_Eu, 0.5);
+
+      if(Eu == 0 ) {
+      Eu = 1.0e-15;
+      norm_Eu = 1.0e-15;
+    }
 
       su2double norm_k = 0.0;
       norm_k = pow(ScalarVar_Grad_i[0][0],2) + pow(ScalarVar_Grad_i[0][1],2) ;
