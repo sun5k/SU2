@@ -1105,6 +1105,9 @@ void CConfig::SetConfig_Options() {
   addEnumOption("KIND_TRANS_MODEL", Kind_Trans_Model, Trans_Model_Map, TURB_TRANS_MODEL::NONE);
   /*!\brief SST_OPTIONS \n DESCRIPTION: Specify LM transition model options/correlations. \n Options: see \link LM_Options_Map \endlink \n DEFAULT: NONE \ingroup Config*/
   addEnumListOption("LM_OPTIONS", nLM_Options, LM_Options, LM_Options_Map);
+  /*!\brief INTERMITTENCY_MODELS \n DESCRIPTION: Specify INTERMITTENCY transition model version. \n Options: see \link INTERMITTENCY_Models_Map \endlink \n DEFAULT: NONE \ingroup Config*/
+  addEnumListOption("INTERMITTENCY_MODELS", nINTERMITTENCY_Models, INTERMITTENCY_Models, INTERMITTENCY_Models_Map);
+  
   /*!\brief HROUGHNESS \n DESCRIPTION: Value of RMS roughness for transition model \n DEFAULT: 1E-6 \ingroup Config*/
   addDoubleOption("HROUGHNESS", hRoughness, 1e-6);
 
@@ -3425,7 +3428,11 @@ void CConfig::SetPostprocessing(SU2_COMPONENT val_software, unsigned short val_i
     if (lmParsedOptions.LM2015 && val_nDim == 2) {
       SU2_MPI::Error("LM2015 is available only for 3D problems", CURRENT_FUNCTION);
     }
+  } else if (Kind_Trans_Model == TURB_TRANS_MODEL::INTERMITTENCY) {
+    intermittencyParsedOptions = ParseINTERMITTENCYOptions(INTERMITTENCY_Models, nINTERMITTENCY_Models, rank, Kind_Turb_Model);    
   }
+
+  
 
   /*--- Set the boolean Wall_Functions equal to true if there is a
    definition for the wall founctions ---*/
@@ -6038,6 +6045,10 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
             }
             break;
           }
+          case TURB_TRANS_MODEL::INTERMITTENCY: {
+            cout << "Transition model: Intermittency based 3 equation model";
+            break;
+          }
         }
         if (Kind_Trans_Model == TURB_TRANS_MODEL::LM) {
 
@@ -6057,6 +6068,14 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
                 case TURB_MODEL::NONE: SU2_MPI::Error("No turbulence model has been selected but LM transition model is active.", CURRENT_FUNCTION); break;
               }
               break;
+          }
+        }if (Kind_Trans_Model == TURB_TRANS_MODEL::INTERMITTENCY) {
+
+          cout << " Version : ";
+          switch (intermittencyParsedOptions.Intermit_model) {
+            case INTERMITTENCY_MODEL::FU2013: cout << "Fu and Wang (2013)" << endl;  break;
+            case INTERMITTENCY_MODEL::WANG2016: cout << "Wang et al. (2013)" << endl;  break;
+            case INTERMITTENCY_MODEL::DEFAULT: SU2_MPI::Error("No intermittency option has been selected.", CURRENT_FUNCTION); break;
           }
         }
         cout << "Hybrid RANS/LES: ";

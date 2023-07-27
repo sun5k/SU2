@@ -38,3 +38,48 @@
 template <class FlowIndices>
 using CUpwSca_TransLM  = CUpwSca_TurbSST<FlowIndices>;
 
+
+/*!
+ * \class CUpwSca_TransIntermittency
+ * \brief Class for doing a scalar upwind solver for the Intermittency equations.
+ * \ingroup ConvDiscr
+ * \author S. Kang.
+ */
+template <class FlowIndices>
+class CUpwSca_TransIntermittency final : public CUpwScalar<FlowIndices> {
+private:
+  using Base = CUpwScalar<FlowIndices>;
+  using Base::a0;
+  using Base::a1;
+  using Base::Flux;
+  using Base::Jacobian_i;
+  using Base::Jacobian_j;
+  using Base::ScalarVar_i;
+  using Base::ScalarVar_j;
+  using Base::bounded_scalar;
+
+  /*!
+   * \brief Adds any extra variables to AD.
+   */
+  void ExtraADPreaccIn() override {}
+
+  /*!
+   * \brief SA specific steps in the ComputeResidual method
+   * \param[in] config - Definition of the particular problem.
+   */
+  void FinishResidualCalc(const CConfig* config) override {
+    Flux[0] = a0*ScalarVar_i[0] + a1*ScalarVar_j[0];
+    Jacobian_i[0][0] = a0;
+    Jacobian_j[0][0] = a1;
+  }
+
+public:
+  /*!
+   * \brief Constructor of the class.
+   * \param[in] val_nDim - Number of dimensions of the problem.
+   * \param[in] val_nVar - Number of variables of the problem.
+   * \param[in] config - Definition of the particular problem.
+   */
+  CUpwSca_TransIntermittency(unsigned short val_nDim, unsigned short val_nVar, const CConfig* config)
+    : CUpwScalar<FlowIndices>(val_nDim, val_nVar, config) { bounded_scalar = config->GetBounded_Turb(); }
+};

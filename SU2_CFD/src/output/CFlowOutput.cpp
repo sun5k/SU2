@@ -981,6 +981,11 @@ void CFlowOutput::AddHistoryOutputFields_ScalarRMS_RES(const CConfig* config) {
       AddHistoryOutput("RMS_RE_THETA_T", "rms[LM_2]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of momentum thickness Reynolds number (LM model).", HistoryFieldType::RESIDUAL);
       break;
 
+    case TURB_TRANS_MODEL::INTERMITTENCY:
+      /// DESCRIPTION: Root-mean square residual of the intermittency (LM model).
+      AddHistoryOutput("RMS_INTERMITTENCY", "rms[Intermit]",  ScreenOutputFormat::FIXED, "RMS_RES", "Root-mean square residual of intermittency (Intermittency model).", HistoryFieldType::RESIDUAL);
+      break;
+
     case TURB_TRANS_MODEL::NONE: break;
   }
 
@@ -1016,6 +1021,11 @@ void CFlowOutput::AddHistoryOutputFields_ScalarMAX_RES(const CConfig* config) {
       AddHistoryOutput("MAX_INTERMITTENCY", "max[LM_1]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the intermittency (LM model).", HistoryFieldType::RESIDUAL);
       /// DESCRIPTION: Maximum residual of the momentum thickness Reynolds number (LM model).
       AddHistoryOutput("MAX_RE_THETA_T", "max[LM_2]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the momentum thickness Reynolds number (LM model).", HistoryFieldType::RESIDUAL);
+      break;
+
+    case TURB_TRANS_MODEL::INTERMITTENCY :
+      /// DESCRIPTION: Maximum residual of the intermittency (Intermittency model).
+      AddHistoryOutput("MAX_INTERMITTENCY", "max[Intermit]",  ScreenOutputFormat::FIXED, "MAX_RES", "Maximum residual of the intermittency (Intermittency model).", HistoryFieldType::RESIDUAL) ;
       break;
 
     case TURB_TRANS_MODEL::NONE:
@@ -1054,6 +1064,10 @@ void CFlowOutput::AddHistoryOutputFields_ScalarBGS_RES(const CConfig* config) {
       AddHistoryOutput("BGS_INTERMITTENCY", "bgs[LM_1]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the intermittency (LM model).", HistoryFieldType::RESIDUAL);
       /// DESCRIPTION: Maximum residual of the momentum thickness Reynolds number (LM model).
       AddHistoryOutput("BGS_RE_THETA_T", "bgs[LM_2]",  ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the momentum thickness Reynolds number (LM model).", HistoryFieldType::RESIDUAL);
+      break;
+      case TURB_TRANS_MODEL::INTERMITTENCY:
+      /// DESCRIPTION: Maximum residual of the intermittency (LM model).
+      AddHistoryOutput("BGS_INTERMITTENCY", "bgs[Intermit]", ScreenOutputFormat::FIXED, "BGS_RES", "BGS residual of the intermittency (Intermittency model).", HistoryFieldType::RESIDUAL);      
       break;
 
     case TURB_TRANS_MODEL::NONE: break;
@@ -1125,6 +1139,16 @@ void CFlowOutput::LoadHistoryDataScalar(const CConfig* config, const CSolver* co
       }
       SetHistoryOutputValue("LINSOL_ITER_TRANS", solver[TRANS_SOL]->GetIterLinSolver());
       SetHistoryOutputValue("LINSOL_RESIDUAL_TRANS", log10(solver[TRANS_SOL]->GetResLinSolver()));
+
+      case TURB_TRANS_MODEL::INTERMITTENCY :
+      SetHistoryOutputValue("RMS_INTERMITTENCY", log10(solver[TRANS_SOL]->GetRes_RMS(0)));
+      SetHistoryOutputValue("MAX_INTERMITTENCY", log10(solver[TRANS_SOL]->GetRes_Max(0)));
+      if (multiZone) {
+        SetHistoryOutputValue("BGS_INTERMITTENCY", log10(solver[TRANS_SOL]->GetRes_BGS(0)));
+      }
+      SetHistoryOutputValue("LINSOL_ITER_TRANS", solver[TRANS_SOL]->GetIterLinSolver());
+      SetHistoryOutputValue("LINSOL_RESIDUAL_TRANS", log10(solver[TRANS_SOL]->GetResLinSolver()));
+      
       break;
 
     case TURB_TRANS_MODEL::NONE: break;
@@ -1167,6 +1191,10 @@ void CFlowOutput::SetVolumeOutputFieldsScalarSolution(const CConfig* config){
       AddVolumeOutput("RE_THETA_T", "LM_Re_t", "SOLUTION", "LM RE_THETA_T");
       break;
 
+    case TURB_TRANS_MODEL::INTERMITTENCY :
+      AddVolumeOutput("INTERMITTENCY", "Intermittency", "SOLUTION", "Intermittency");
+      break;
+
     case TURB_TRANS_MODEL::NONE:
       break;
   }
@@ -1199,6 +1227,10 @@ void CFlowOutput::SetVolumeOutputFieldsScalarResidual(const CConfig* config) {
     case TURB_TRANS_MODEL::LM:
       AddVolumeOutput("RES_INTERMITTENCY", "Residual_LM_intermittency", "RESIDUAL", "Residual of LM intermittency");
       AddVolumeOutput("RES_RE_THETA_T", "Residual_LM_RE_THETA_T", "RESIDUAL", "Residual of LM RE_THETA_T");
+      break;
+
+    case TURB_TRANS_MODEL::INTERMITTENCY :
+      AddVolumeOutput("RES_INTERMITTENCY", "Residual_Intermittency", "RESIDUAL", "Residual of Intermittency");
       break;
 
     case TURB_TRANS_MODEL::NONE:
@@ -1246,6 +1278,9 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       AddVolumeOutput("INTERMITTENCY_SEP", "LM_gamma_sep", "PRIMITIVE", "LM intermittency");
       AddVolumeOutput("INTERMITTENCY_EFF", "LM_gamma_eff", "PRIMITIVE", "LM RE_THETA_T");
       AddVolumeOutput("TURB_INDEX", "Turb_index", "PRIMITIVE", "Turbulence index");
+      break;
+
+    case TURB_TRANS_MODEL::INTERMITTENCY :
       break;
 
     case TURB_TRANS_MODEL::NONE:
@@ -1341,6 +1376,11 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       SetVolumeOutputValue("TURB_INDEX", iPoint, Node_Turb->GetTurbIndex(iPoint));
       SetVolumeOutputValue("RES_INTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 0));
       SetVolumeOutputValue("RES_RE_THETA_T", iPoint, trans_solver->LinSysRes(iPoint, 1));
+      break;
+    
+    case TURB_TRANS_MODEL::INTERMITTENCY:
+      SetVolumeOutputValue("INTERMITTENCY", iPoint, Node_Trans->GetSolution(iPoint, 0));
+      SetVolumeOutputValue("RES_INTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 0));      
       break;
 
     case TURB_TRANS_MODEL::NONE: break;
@@ -2406,6 +2446,9 @@ void CFlowOutput::WriteForcesBreakdown(const CConfig* config, const CSolver* flo
           } else {
             file << " (2009)\n";
           }
+          break;
+        case TURB_TRANS_MODEL::INTERMITTENCY:
+          file << "Intermittency based transition model";
           break;
         }
       }

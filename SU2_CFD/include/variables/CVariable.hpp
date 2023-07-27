@@ -1741,6 +1741,40 @@ public:
   inline virtual su2double GetTurbIndex(unsigned long iPoint) const {return 0.0;}
 
   /*!
+   * \brief Set the variables for the intermittency based model(Fu2013).
+   * \param[in] val_iPoint - Value of the iPoint.
+   * \param[in] zeta - Length scale.
+   * \param[in] sgn - Sign.
+   * \param[in] extraTau - Time scale.
+   * \param[in] deflection - Veolcity of deflection point.
+   */
+  inline virtual void SetIntermittency_Fu_Func(unsigned long iPoint, su2double zeta, su2double sgn, su2double extraTau, su2double deflection ) {}
+
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Fu_Func_zeta(unsigned long iPoint) const {return 0.0;}
+  
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Fu_Func_sgn(unsigned long iPoint) const {return 0.0;}
+
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Fu_Func_extraTau(unsigned long iPoint) const {return 0.0;}
+
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Fu_Func_deflection(unsigned long iPoint) const {return 0.0;}
+
+  /*!
    * \brief A virtual member.
    * \param[in] iVar - Index of the variable.
    * \param[in] val_source - Value of the harmonic balance source.

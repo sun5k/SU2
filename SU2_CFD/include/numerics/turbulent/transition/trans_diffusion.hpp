@@ -103,3 +103,68 @@ public:
   }
 
 };
+
+/*!
+ * \class CAvgGrad_TurbSA
+ * \brief Class for computing viscous term using average of gradients (Spalart-Allmaras Turbulence model).
+ * \ingroup ViscDiscr
+ * \author A. Bueno.
+ */
+template <class FlowIndices>
+class CAvgGrad_TransIntermittency final : public CAvgGrad_Scalar<FlowIndices> {
+private:
+  using Base = CAvgGrad_Scalar<FlowIndices>;
+  using Base::Laminar_Viscosity_i;
+  using Base::Laminar_Viscosity_j;
+  using Base::Eddy_Viscosity_i;
+  using Base::Eddy_Viscosity_j;
+  using Base::Density_i;
+  using Base::Density_j;
+  using Base::ScalarVar_i;
+  using Base::ScalarVar_j;
+  using Base::Proj_Mean_GradScalarVar;
+  using Base::proj_vector_ij;
+  using Base::Flux;
+  using Base::Jacobian_i;
+  using Base::Jacobian_j;
+
+  /*!
+   * \brief Adds any extra variables to AD
+   */
+  void ExtraADPreaccIn() override {}
+
+  /*!
+   * \brief SA specific steps in the ComputeResidual method
+   * \param[in] config - Definition of the particular problem.
+   */
+  void FinishResidualCalc(const CConfig* config) override {
+    const bool implicit = config->GetKind_TimeIntScheme() == EULER_IMPLICIT;
+
+    /*--- Compute mean effective viscosity ---*/
+
+    const su2double diff_i_gamma = Laminar_Viscosity_i + Eddy_Viscosity_i;
+    const su2double diff_j_gamma = Laminar_Viscosity_j + Eddy_Viscosity_j;
+    const su2double diff_gamma = 0.5*(diff_i_gamma + diff_j_gamma);
+
+    Flux[0] = diff_gamma*Proj_Mean_GradScalarVar[0];
+    
+    if (implicit) {
+      const su2double proj_on_rho_i = proj_vector_ij/Density_i;
+      const su2double proj_on_rho_j = proj_vector_ij/Density_j;
+      Jacobian_i[0][0] = -diff_gamma*proj_on_rho_i;
+      Jacobian_j[0][0] = diff_gamma*proj_on_rho_j;
+    }
+  }
+
+public:
+  /*!
+   * \brief Constructor of the class.
+   * \param[in] val_nDim - Number of dimensions of the problem.
+   * \param[in] val_nVar - Number of variables of the problem.
+   * \param[in] correct_grad - Whether to correct gradient for skewness.
+   * \param[in] config - Definition of the particular problem.
+   */
+  CAvgGrad_TransIntermittency(unsigned short val_nDim, unsigned short val_nVar,
+                  bool correct_grad, const CConfig* config)
+    : CAvgGrad_Scalar<FlowIndices>(val_nDim, val_nVar, correct_grad, config) {}
+};

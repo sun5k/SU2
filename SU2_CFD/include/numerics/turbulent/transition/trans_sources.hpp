@@ -323,3 +323,234 @@ class CSourcePieceWise_TransLM final : public CNumerics {
     return ResidualType<>(Residual, Jacobian_i, nullptr);
   }
 };
+
+
+/*!
+ * \class CIntermittencyVariables
+ * \ingroup SourceDiscr
+ * \brief Structure with Intermittency common auxiliary functions and constants.
+ */
+struct CIntermittencyVariables {
+  /*--- List of constants ---*/
+  const su2double cv1_3 = pow(7.1, 3);
+  
+  /*--- List of General variables ---*/
+  su2double density, laminar_viscosity;
+  /*--- List of Fu2013 model ---*/
+  su2double Velocity_Mag = 0.0, vel_u = 0.0, vel_v = 0.0, vel_w = 0.0,
+            VorticityMag = 0.0, StrainMag = 0.0, dist = 0.0,
+            Eu = 0.0, norm_Eu = 0.0, norm_k = 0.0, tke = 0.0, omega = 0.0, intermittency = 0.0;
+};
+
+
+/*!
+ * \class CSourceBase_Intermittency
+ * \ingroup SourceDiscr
+ * \brief Class for integrating the source terms of the intermittency equation.
+ * The variables that are subject to change in each variation/correction have their own class. 
+ */
+template <class FlowIndices>
+class CSourceBase_TransIntermittency : public CNumerics {
+ protected:
+
+  /*--- Residual and Jacobian ---*/
+  su2double Residual, *Jacobian_i;
+  su2double Jacobian_Buffer; /*!< \brief Static storage for the Jacobian (which needs to be pointer for return type). */
+
+  const FlowIndices idx; /*!< \brief Object to manage the access to the flow primitives. */
+  const INTERMITTENCY_ParsedOptions options; /*!< \brief Struct with Intermittency options. */
+
+
+  bool transition;
+
+ public:
+  /*!
+   * \brief Constructor of the class.
+   * \param[in] nDim - Number of dimensions of the problem.
+   * \param[in] config - Definition of the particular problem.
+   */
+  CSourceBase_TransIntermittency(unsigned short nDim, unsigned short val_nVar, const CConfig* config)
+      : CNumerics(nDim, 1, config),
+        idx(nDim, config->GetnSpecies()),
+        options(config->GetINTERMITTENCYParsedOptions()) {
+    /*--- Setup the Jacobian pointer, we need to return su2double** but we know
+     * the Jacobian is 1x1 so we use this trick to avoid heap allocation. ---*/
+    Jacobian_i = &Jacobian_Buffer;
+  }
+
+
+  /*!
+   * \brief Residual for source term integration.
+   * \param[in] config - Definition of the particular problem.
+   * \return A lightweight const-view (read-only) of the residual/flux and Jacobians.
+   */
+  ResidualType<> ComputeResidual(const CConfig* config) override {
+    const auto& density = V_i[idx.Density()];
+    const auto& laminar_viscosity = V_i[idx.LaminarViscosity()];
+
+    AD::StartPreacc();
+    AD::SetPreaccIn(density, laminar_viscosity, StrainMag_i, Volume, dist_i);
+    AD::SetPreaccIn(ScalarVar_i, nVar);    
+    AD::SetPreaccIn(ScalarVar_Grad_i, nVar, nDim);
+    AD::SetPreaccIn(TransVar_i, nVar);
+    AD::SetPreaccIn(PrimVar_Grad_i, nDim + idx.Velocity(), nDim);
+    AD::SetPreaccIn(Vorticity_i, 3);
+    AD::SetPreaccIn(StrainMag_i);
+    AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
+    AD::SetPreaccIn(V_i[idx.Velocity() + 1]);
+
+    /*--- Common auxiliary variables and constants of the model. ---*/
+    CIntermittencyVariables var;
+    
+    var.vel_u = V_i[idx.Velocity()];
+    var.vel_v = V_i[1 + idx.Velocity()];
+    var.vel_w = (nDim == 3) ? V_i[2 + idx.Velocity()] : 0.0;
+    var.Velocity_Mag = sqrt(var.vel_u * var.vel_u + var.vel_v * var.vel_v + var.vel_w * var.vel_w);
+    var.density = density;
+    var.laminar_viscosity = laminar_viscosity;
+    var.dist = dist_i;
+    var.tke = ScalarVar_i[0];
+    var.omega = ScalarVar_i[1];
+    var.intermittency = TransVar_i[0];
+
+    su2double Eu_i = 0.0 , Eu_j = 0.0, Eu_k = 0.0;
+
+    var.Eu = 0.5*pow( var.Velocity_Mag,2);
+    for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+      Eu_i += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][0];
+      Eu_j += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][1];
+      if(nDim ==3)
+      Eu_k += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][2];
+    }
+    
+    var.norm_Eu = pow(Eu_i,2) + pow(Eu_j,2) + pow(Eu_k,2);
+    var.norm_Eu = pow(var.norm_Eu, 0.5);
+
+    if(var.Eu == 0 ) {
+    var.Eu = 1.0e-15;
+    var.norm_Eu = 1.0e-15;
+    }
+
+    var.norm_k = pow(ScalarVar_Grad_i[0][0],2) + pow(ScalarVar_Grad_i[0][1],2) ;
+    if(nDim == 3) var.norm_k += pow(ScalarVar_Grad_i[0][2],2);
+    var.norm_k = pow(var.norm_k, 0.5);
+
+    Residual = 0.0;
+    Jacobian_i[0] = 0.0;
+
+    if (dist_i > 1e-10) {
+      
+      const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
+      var.VorticityMag = VorticityMag;
+      var.StrainMag = StrainMag_i;
+      /*--- Compute production, destruction and cross production and jacobian ---*/
+      su2double Production = 0.0, Destruction = 0.0, CrossProduction = 0.0;      
+      switch ( options.Intermit_model )
+      {
+      case INTERMITTENCY_MODEL::FU2013 :
+        SourceTerms::Fu2013::get( var, nDim,Production, Destruction, Jacobian_i[0]);
+        Residual = ( Production );
+        break;
+      case INTERMITTENCY_MODEL::WANG2016 :
+        SourceTerms::Wang2016::get( var, nDim, Production, Destruction, Jacobian_i[0]);
+        Residual = ( Production );
+        break;
+      }
+      
+      
+      //SourceTerms::get( var, Production, Destruction, Jacobian_i[0]);
+
+      Residual *= Volume;
+      Jacobian_i[0] *= Volume;
+    }
+
+    AD::SetPreaccOut(Residual);
+    AD::EndPreacc();
+
+    return ResidualType<>(&Residual, &Jacobian_i, nullptr);
+  }
+
+  /*!
+ * \brief Intermittency source terms classes: production, destruction and their derivative.
+ * \ingroup SourceDiscr
+ * \param[in] var: Common SA variables struct.
+ * \param[out] production: Production term.
+ * \param[out] destruction: Destruction term.
+ * \param[out] jacobian: Derivative of the combined source term wrt nue.
+ */
+struct SourceTerms {
+
+/*! \brief Fu2013 (Transition model). */
+struct Fu2013 {
+  static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
+                   su2double& jacobian) {
+    ComputeProduction(var, nDim, production, jacobian);
+    ComputeDestruction(var, nDim, destruction, jacobian);
+  }
+
+  static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
+                                su2double& jacobian) {
+
+    const su2double betaStar = 0.09, C_1 = 0.6, C_2 = 0.35, C_3 = 0.005, C_4 = 0.001, C_5 = 5.0;
+    const su2double C_6 = 8.0e-5, C_7 = 0.07, C_8 = 1.2, C_mu = 0.09;
+
+    su2double F_onset = 0.0;
+
+    su2double zeta = 0.0, lengthScale_T = 0.0, lengthScale_B = 0.0, zeta_eff = 0.0;
+    zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
+    lengthScale_T = pow(var.tke, 0.5)/(betaStar * var.omega);
+    lengthScale_B = pow(var.tke, 0.5)/(C_mu * var.StrainMag);      
+    zeta_eff = min(min(zeta, lengthScale_T), C_1 * lengthScale_B);
+    F_onset = 1-exp(-C_6 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+
+    su2double pg = 0.0;
+      if( var.intermittency == 1.0) {
+        production = 0.0;
+    }
+    else {
+       su2double templog = -1.0 * log(1.0-var.intermittency) ;
+       production = (1-var.intermittency) * pow( templog ,0.5) * F_onset * C_6 * var.density 
+                    * ( 1 + C_7 * pow( var.tke / 2.0 / var.Eu ,0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+    }
+
+   
+    jacobian = 0.0;
+  }
+
+  static void ComputeDestruction( const CIntermittencyVariables& var, const su2double& nDim, su2double& destruction,
+                                 su2double& jacobian) {
+    destruction = 0.0;
+  }
+
+};
+
+
+
+struct Wang2016 {
+  static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
+                   su2double& jacobian) {
+    ComputeProduction(var, nDim, production, jacobian);
+    ComputeDestruction(var, nDim, destruction, jacobian);
+  }
+
+  static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
+                                su2double& jacobian) {
+    production = 0.0;
+    jacobian = 0.0;
+  }
+
+  static void ComputeDestruction(const CIntermittencyVariables& var, const su2double& nDim, su2double& destruction,
+                                 su2double& jacobian) {
+    destruction = 0.0;
+  }
+
+};
+
+};
+
+};
+
+
+
+
+

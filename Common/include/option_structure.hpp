@@ -1163,10 +1163,12 @@ inline SA_ParsedOptions ParseSAOptions(const SA_OPTIONS *SA_Options, unsigned sh
 enum class TURB_TRANS_MODEL {
   NONE,  /*!< \brief No transition model. */
   LM,    /*!< \brief Kind of transition model (Langtry-Menter (LM) for SST and Spalart-Allmaras). */
+  INTERMITTENCY, /*!< \brief Kind of transition model (Intermittency for SST and Spalart-Allmaras). */
 };
 static const MapType<std::string, TURB_TRANS_MODEL> Trans_Model_Map = {
   MakePair("NONE", TURB_TRANS_MODEL::NONE)
   MakePair("LM", TURB_TRANS_MODEL::LM)
+  MakePair("INTERMITTENCY", TURB_TRANS_MODEL::INTERMITTENCY)
 };
 
 /*!
@@ -1281,6 +1283,60 @@ inline LM_ParsedOptions ParseLMOptions(const LM_OPTIONS *LM_Options, unsigned sh
 
   return LMParsedOptions;
 }
+
+
+/*!
+ * \brief Inter Options
+ */
+enum class INTERMITTENCY_MODEL {
+  NONE,         /*!< \brief No option / default. */  
+  FU2013,   /*!< \brief Kind of transition model (Fu2013). */
+  WANG2016,   /*!< \brief Kind of transition model (Wang et al. 2016). */
+  DEFAULT       /*!< \brief Kind of transition correlation model (). */
+};
+static const MapType<std::string, INTERMITTENCY_MODEL > INTERMITTENCY_Models_Map = {
+  MakePair("NONE", INTERMITTENCY_MODEL::NONE)
+  MakePair("FU2013", INTERMITTENCY_MODEL::FU2013)
+  MakePair("WANG2016", INTERMITTENCY_MODEL::WANG2016)
+  MakePair("DEFAULT", INTERMITTENCY_MODEL::DEFAULT)
+};
+
+/*!
+ * \brief Structure containing parsed Intermittency model options.
+ */
+struct INTERMITTENCY_ParsedOptions {
+  INTERMITTENCY_MODEL Intermit_model = INTERMITTENCY_MODEL::NONE;  /*!< \brief intermittency base model. */  
+};
+
+/*!
+ * \brief Function to parse INTERMITTENCY options.
+ * \param[in] INTERMITTENCY_Models - Selected INTERMITTENCY option from config.
+ * \param[in] nINTERMITTENCY_Models - Number of options selected.
+ * \param[in] rank - MPI rank.
+ * \return Struct with INTERMITTENCY options.
+ */
+inline INTERMITTENCY_ParsedOptions ParseINTERMITTENCYOptions(const INTERMITTENCY_MODEL *INTERMITTENCY_Models, unsigned short nINTERMITTENCY_Models, int rank, TURB_MODEL Kind_Turb_Model) {
+  INTERMITTENCY_ParsedOptions INTERMITTENCYParsedOptions;
+
+  auto IsPresent = [&](INTERMITTENCY_MODEL Specfic_model) {
+    const auto INTERMITTENCY_Models_end = INTERMITTENCY_Models + nINTERMITTENCY_Models;
+    return std::find(INTERMITTENCY_Models, INTERMITTENCY_Models_end, Specfic_model) != INTERMITTENCY_Models_end;
+  };
+
+  const bool found_Fu = IsPresent(INTERMITTENCY_MODEL::FU2013);
+  const bool found_Wang = IsPresent(INTERMITTENCY_MODEL::WANG2016); 
+
+  if (found_Fu && found_Wang) {
+    SU2_MPI::Error("Two model selected for INTERMITTENCY_MODEL. Please choose only one.", CURRENT_FUNCTION);
+  } else if (found_Fu) {
+    INTERMITTENCYParsedOptions.Intermit_model = INTERMITTENCY_MODEL::FU2013;
+  } else if (found_Wang) {
+    INTERMITTENCYParsedOptions.Intermit_model = INTERMITTENCY_MODEL::WANG2016;
+  } 
+
+  return INTERMITTENCYParsedOptions;
+}
+
 
 /*!
  * \brief types of species transport models

@@ -183,6 +183,7 @@ protected:
 
   su2double MeanPerturbedRSM[3][3];   /*!< \brief Perturbed Reynolds stress tensor  */
   SST_ParsedOptions sstParsedOptions; /*!< \brief additional options for the SST turbulence model */
+  INTERMITTENCY_ParsedOptions IntermittencyParsedOptions; /*!< \brief additional options for the intermittency transition model */
   unsigned short Eig_Val_Comp;    /*!< \brief Component towards which perturbation is perfromed */
   su2double uq_delta_b;           /*!< \brief Magnitude of perturbation */
   su2double uq_urlx;              /*!< \brief Under-relaxation factor for numerical stability */

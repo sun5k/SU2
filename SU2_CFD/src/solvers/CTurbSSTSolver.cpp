@@ -196,6 +196,9 @@ void CTurbSSTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
                                     CConfig *config, unsigned short iMesh) {
 
   const su2double a1 = constants[7];
+  bool intermitNeed =  false;
+  if( TURB_TRANS_MODEL::INTERMITTENCY == config->GetKind_Trans_Model() ) intermitNeed = true;
+  
 
   /*--- Compute turbulence gradients. ---*/
 
@@ -234,8 +237,60 @@ void CTurbSSTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
     const auto& eddy_visc_var = sstParsedOptions.version == SST_OPTIONS::V1994 ? VorticityMag : StrainMag;
     const su2double muT = max(0.0, rho * a1 * kine / max(a1 * omega, eddy_visc_var * F2));
 
+
+
+    
+
     nodes->SetmuT(iPoint, muT);
 
+    
+    su2double muT_temp = muT;
+    su2double g = 0.0;
+    if (  intermitNeed ) {      
+      if( solver_container[TRANS_SOL] != nullptr) {
+        
+        auto* transNodes = su2staticcast_p<CFlowVariable*>(solver_container[TRANS_SOL]->GetNodes());
+        g = nodes->GetIntermittency(iPoint);
+        g = transNodes->GetIntermittency(iPoint);
+        su2double zeta = 0.0, sgn = 0.0, extraTau = 0.0, deflection = 0.0;
+        su2double zeta_eff = 0.0, lengthScale_T = 0.0, lengthScale_B = 0.0, mu_nt = 0.0;
+        su2double tau_nt = 0.0;
+        const su2double C_mu = 0.09, C_3 = 0.005, beta_star = 0.0;
+      
+
+        switch ( config->GetINTERMITTENCYParsedOptions().Intermit_model ) {
+          case INTERMITTENCY_MODEL::FU2013 :
+
+          zeta = transNodes -> GetIntermit_Fu_Func_zeta(iPoint);
+          sgn = transNodes -> GetIntermit_Fu_Func_sgn(iPoint);
+          extraTau = transNodes -> GetIntermit_Fu_Func_extraTau(iPoint);
+          deflection = transNodes -> GetIntermit_Fu_Func_deflection(iPoint);
+          lengthScale_B = pow(kine,0.5) /(0.09 * StrainMag);
+          lengthScale_T = pow(kine,0.5) / omega / 0.09;
+          zeta_eff = min(min(zeta, lengthScale_B), lengthScale_T);
+          tau_nt = extraTau * zeta_eff + (C_3 * 2.0 * zeta_eff / deflection) *0.5 * ( 1 + sgn ); 
+          mu_nt = C_mu * rho * kine * tau_nt;
+          muT_temp = (1.0-g)*mu_nt + g * muT;
+
+          break;
+    
+          case INTERMITTENCY_MODEL::WANG2016 :
+           muT_temp = muT;
+          break;
+       
+          default: 
+            muT_temp = muT;
+          break;
+      }
+        
+      
+      
+
+      
+      } 
+    }
+    const su2double muT_eff = muT_temp;
+    nodes->SetmuT(iPoint, muT_eff);
   }
   END_SU2_OMP_FOR
 
