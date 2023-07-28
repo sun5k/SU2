@@ -49,6 +49,9 @@ template <class FlowIndices>
 class CUpwSca_TransIntermittency final : public CUpwScalar<FlowIndices> {
 private:
   using Base = CUpwScalar<FlowIndices>;
+  using Base::nDim;
+  using Base::V_i;
+  using Base::V_j;
   using Base::a0;
   using Base::a1;
   using Base::Flux;
@@ -56,6 +59,7 @@ private:
   using Base::Jacobian_j;
   using Base::ScalarVar_i;
   using Base::ScalarVar_j;
+  using Base::idx;
   using Base::bounded_scalar;
 
   /*!
@@ -64,11 +68,11 @@ private:
   void ExtraADPreaccIn() override {}
 
   /*!
-   * \brief SA specific steps in the ComputeResidual method
+   * \brief Intermittency specific steps in the ComputeResidual method
    * \param[in] config - Definition of the particular problem.
    */
   void FinishResidualCalc(const CConfig* config) override {
-    Flux[0] = a0*ScalarVar_i[0] + a1*ScalarVar_j[0];
+    Flux[0] = a0*V_i[idx.Density()]*ScalarVar_i[0] + a1*V_j[idx.Density()]*ScalarVar_j[0];
     Jacobian_i[0][0] = a0;
     Jacobian_j[0][0] = a1;
   }
