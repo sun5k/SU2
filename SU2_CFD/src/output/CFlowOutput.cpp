@@ -1281,6 +1281,13 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       break;
 
     case TURB_TRANS_MODEL::INTERMITTENCY :
+      AddVolumeOutput("TempVar1", "TempVar1", "PRIMITIVE", "Wonder Vari1");
+      AddVolumeOutput("TempVar2", "TempVar2", "PRIMITIVE", "Wonder Vari2");
+      AddVolumeOutput("TempVar3", "TempVar3", "PRIMITIVE", "Wonder Vari3");
+      AddVolumeOutput("TempVar4", "TempVar4", "PRIMITIVE", "Wonder Vari4");
+      AddVolumeOutput("TempVar5", "TempVar5", "PRIMITIVE", "Wonder Vari5");
+      AddVolumeOutput("TempVar6", "TempVar6", "PRIMITIVE", "Wonder Vari6");
+
       break;
 
     case TURB_TRANS_MODEL::NONE:
@@ -1380,7 +1387,13 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
     
     case TURB_TRANS_MODEL::INTERMITTENCY:
       SetVolumeOutputValue("INTERMITTENCY", iPoint, Node_Trans->GetSolution(iPoint, 0));
-      SetVolumeOutputValue("RES_INTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 0));      
+      SetVolumeOutputValue("TempVar1", iPoint, Node_Trans->GetIntermit_Wonder_Func_var1(iPoint));
+      SetVolumeOutputValue("TempVar2", iPoint, Node_Trans->GetIntermit_Wonder_Func_var2(iPoint));
+      SetVolumeOutputValue("TempVar3", iPoint, Node_Trans->GetIntermit_Wonder_Func_var3(iPoint));
+      SetVolumeOutputValue("TempVar4", iPoint, Node_Trans->GetIntermit_Wonder_Func_var4(iPoint));
+      SetVolumeOutputValue("TempVar5", iPoint, Node_Trans->GetIntermit_Wonder_Func_var5(iPoint));
+      SetVolumeOutputValue("TempVar6", iPoint, Node_Trans->GetIntermit_Wonder_Func_var6(iPoint));
+      SetVolumeOutputValue("RES_INTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 0));
       break;
 
     case TURB_TRANS_MODEL::NONE: break;

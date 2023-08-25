@@ -338,8 +338,10 @@ struct CIntermittencyVariables {
   su2double density, laminar_viscosity;
   /*--- List of Fu2013 model ---*/
   su2double Velocity_Mag = 0.0, vel_u = 0.0, vel_v = 0.0, vel_w = 0.0,
-            VorticityMag = 0.0, StrainMag = 0.0, dist = 0.0,
-            Eu = 0.0, norm_Eu = 0.0, norm_k = 0.0, tke = 0.0, omega = 0.0, intermittency = 0.0;
+            VorticityMag = 0.0, StrainMag = 0.0, dist = 0.0, cordiX = 0.0, cordiY = 0.0,
+            Eu = 0.0, norm_Eu = 0.0, norm_k = 0.0, tke = 0.0, omega = 0.0, intermittency = 0.0,
+            eddyViscousity = 0.0;
+            
 };
 
 
@@ -398,6 +400,7 @@ class CSourceBase_TransIntermittency : public CNumerics {
     AD::SetPreaccIn(StrainMag_i);
     AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
     AD::SetPreaccIn(V_i[idx.Velocity() + 1]);
+    AD::SetPreaccIn(Coord_i, Coord_j);
 
     /*--- Common auxiliary variables and constants of the model. ---*/
     CIntermittencyVariables var;
@@ -412,37 +415,49 @@ class CSourceBase_TransIntermittency : public CNumerics {
     var.tke = ScalarVar_i[0];
     var.omega = ScalarVar_i[1];
     var.intermittency = TransVar_i[0];
+    var.cordiX = Coord_i[0];
+    var.cordiY = Coord_i[1];
+    var.eddyViscousity =  V_i[idx.EddyViscosity()];    
 
-    su2double Eu_i = 0.0 , Eu_j = 0.0, Eu_k = 0.0;
+    su2double Eu_i = 0.0, Eu_j = 0.0, Eu_k = 0.0, TT = 0.0;
 
     var.Eu = 0.5*pow( var.Velocity_Mag,2);
-    for (unsigned short iDim = 0; iDim < nDim; iDim++) {
-      Eu_i += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][0];
-      Eu_j += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][1];
-      if(nDim ==3)
-      Eu_k += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][2];
-    }
+    TT = 0.5 * (V_i[idx.Velocity()] * V_i[idx.Velocity()] + V_i[idx.Velocity()+1] * V_i[idx.Velocity()+1]);
+
     
-    var.norm_Eu = pow(Eu_i,2) + pow(Eu_j,2) + pow(Eu_k,2);
-    var.norm_Eu = pow(var.norm_Eu, 0.5);
-
-    if(var.Eu == 0 ) {
-    var.Eu = 1.0e-15;
-    var.norm_Eu = 1.0e-15;
-    }
-
-    var.norm_k = pow(ScalarVar_Grad_i[0][0],2) + pow(ScalarVar_Grad_i[0][1],2) ;
-    if(nDim == 3) var.norm_k += pow(ScalarVar_Grad_i[0][2],2);
-    var.norm_k = pow(var.norm_k, 0.5);
 
     Residual = 0.0;
     Jacobian_i[0] = 0.0;
 
     if (dist_i > 1e-10) {
-      
+
+      for (unsigned short iDim = 0; iDim < nDim; iDim++) {
+      Eu_i += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][0];
+      Eu_j += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][1];
+      if(nDim ==3)
+      Eu_k += V_i[iDim +idx.Velocity()] * PrimVar_Grad_i[iDim + idx.Velocity()][2];
+      }
+
+      var.norm_Eu = pow(Eu_i,2) + pow(Eu_j,2) + pow(Eu_k,2);
+      var.norm_Eu = pow(var.norm_Eu, 0.5);
+
+      if(var.Eu == 0 ) {
+        var.Eu = 1.0e-12;
+        var.norm_Eu = 1.0e-12;
+      }
+
+      var.norm_k = pow(ScalarVar_Grad_i[0][0],2) + pow(ScalarVar_Grad_i[0][1],2) ;
+      if(nDim == 3) var.norm_k += pow(ScalarVar_Grad_i[0][2],2);
+      var.norm_k = pow(var.norm_k, 0.5);
+
       const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
       var.VorticityMag = VorticityMag;
       var.StrainMag = StrainMag_i;
+
+      if (dist_i < 1.0e-3 && Coord_i[0] > 0.0) {
+      su2double tttt = 0.0;}
+
+      
       /*--- Compute production, destruction and cross production and jacobian ---*/
       su2double Production = 0.0, Destruction = 0.0, CrossProduction = 0.0;      
       switch ( options.Intermit_model )
@@ -453,6 +468,18 @@ class CSourceBase_TransIntermittency : public CNumerics {
         break;
       case INTERMITTENCY_MODEL::WANG2016 :
         SourceTerms::Wang2016::get( var, nDim, Production, Destruction, Jacobian_i[0]);
+        Residual = ( Production );
+        break;
+      case INTERMITTENCY_MODEL::ZHOU2016 :
+        SourceTerms::Zhou2016::get( var, nDim, Production, Destruction, Jacobian_i[0]);
+        Residual = ( Production );
+        break;
+      case INTERMITTENCY_MODEL::ZHAO2020 :
+        SourceTerms::Zhao2020::get( var, nDim, Production, Destruction, Jacobian_i[0]);
+        Residual = ( Production );
+        break;
+      case INTERMITTENCY_MODEL::MENTER2015 :
+        SourceTerms::Menter2015::get( var, nDim, Production, Destruction, Jacobian_i[0]);
         Residual = ( Production );
         break;
       }
@@ -494,23 +521,118 @@ struct Fu2013 {
     const su2double betaStar = 0.09, C_1 = 0.6, C_2 = 0.35, C_3 = 0.005, C_4 = 0.001, C_5 = 5.0;
     const su2double C_6 = 8.0e-5, C_7 = 0.07, C_8 = 1.2, C_mu = 0.09;
 
-    su2double F_onset = 0.0;
+    su2double F_onset = 0.0, TempVar1 = 0.0;
 
     su2double zeta = 0.0, lengthScale_T = 0.0, lengthScale_B = 0.0, zeta_eff = 0.0;
     zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
     lengthScale_T = pow(var.tke, 0.5)/(betaStar * var.omega);
-    lengthScale_B = pow(var.tke, 0.5)/(C_mu * var.StrainMag);      
+    lengthScale_B = pow(var.tke, 0.5)/(C_mu * var.StrainMag);
     zeta_eff = min(min(zeta, lengthScale_T), C_1 * lengthScale_B);
-    F_onset = 1-exp(-C_6 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+    //zeta_eff = min(zeta, lengthScale_T);
+    F_onset = -exp(-C_8 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+    TempVar1 = F_onset;
+    F_onset += 1.0;
 
     su2double pg = 0.0;
-      if( var.intermittency == 1.0) {
+    if( var.intermittency == 1.0) {
         production = 0.0;
     }
     else {
        su2double templog = -1.0 * log(1.0-var.intermittency) ;
-       production = (1-var.intermittency) * pow( templog ,0.5) * F_onset * C_6 * var.density 
-                    * ( 1 + C_7 * pow( var.tke / 2.0 / var.Eu ,0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+       production = (1.0-var.intermittency) * pow( templog ,0.5) * F_onset * C_6 
+                    * ( 1.0 + C_7 * pow( var.tke / 2.0 / var.Eu ,0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+        }
+
+    jacobian = 0.0;
+  }
+
+  static void ComputeDestruction( const CIntermittencyVariables& var, const su2double& nDim, su2double& destruction,
+                                 su2double& jacobian) {
+    destruction = 0.0;
+  }
+
+};
+
+
+/*! \brief Wang2016 (Transition model). */
+struct Wang2016 {
+  static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
+                   su2double& jacobian) {
+    ComputeProduction(var, nDim, production, jacobian);
+    ComputeDestruction(var, nDim, destruction, jacobian);
+  }
+
+  static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
+                                su2double& jacobian) {
+    const su2double C_1 = 0.7, C_2 = 0.35, C_3 = 0.005, C_4 = 0.001, C_5 = 5.0;
+    const su2double C_6 = 8.0e-5, C_7 = 0.07, C_8 = 1.2, C_mu = 0.09;
+
+    su2double F_onset = 0.0, TempVar1 = 0.0;
+
+    su2double zeta = 0.0, lengthScale_T = 0.0, zeta_eff = 0.0;
+    zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
+    lengthScale_T = pow(var.tke, 0.5)/(var.omega);
+    zeta_eff = min(zeta, lengthScale_T);
+    
+    F_onset = -exp(-C_8 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+    TempVar1 = F_onset;
+    F_onset += 1.0;
+
+    if( var.intermittency == 1.0) {
+        production = 0.0;
+    }
+    else {
+       su2double templog = -1.0 * log(1.0-var.intermittency) ;
+       production = (1.0-var.intermittency) * pow( templog ,0.5) * F_onset * C_6 
+                    * ( 1.0 + C_7 * pow( var.tke / 2.0 / var.Eu, 0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+    }
+    jacobian = 0.0;
+  }
+
+  static void ComputeDestruction(const CIntermittencyVariables& var, const su2double& nDim, su2double& destruction,
+                                 su2double& jacobian) {
+    destruction = 0.0;
+  }
+
+};
+
+
+/*! \brief Zhou2016 (Transition model). */
+struct Zhou2016 {
+  static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
+                   su2double& jacobian) {
+    ComputeProduction(var, nDim, production, jacobian);
+    ComputeDestruction(var, nDim, destruction, jacobian);
+  }
+
+  static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
+                                su2double& jacobian) {
+
+    const su2double betaStar = 0.09, C_1 = 0.7, C_2 = 0.35, C_3 = 0.005, C_4 = 8.0e-5, C_5 = 0.07;
+    const su2double C_6 = 1.2, C_7 = 0.05, C_8 = 1.0, C_mu = 0.09;
+
+    su2double F_onset = 0.0, TempVar1 = 0.0, Tu = 0.0;
+    Tu = 100.0 * sqrt(2.0 *var.tke / 3.0) / pow( 2*var.Eu , 0.5);
+
+    su2double zeta = 0.0, lengthScale_T = 0.0, lengthScale_B = 0.0, zeta_eff = 0.0;
+    zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
+    lengthScale_T = pow(var.tke, 0.5)/( var.omega);
+    lengthScale_B = pow(var.tke, 0.5)/(C_mu * var.StrainMag);
+    zeta_eff = min(min(zeta, lengthScale_T), lengthScale_B);
+    //zeta_eff = min(zeta, lengthScale_T);
+    F_onset = -exp(-C_8 * var.eddyViscousity/ var.laminar_viscosity ) ;
+    TempVar1 = F_onset;
+    F_onset += 1.0;
+
+    su2double pg = 0.0;
+    if( var.intermittency == 1.0) {
+        production = 0.0;
+    }
+    else {
+       su2double templog = -1.0 * log(1.0-var.intermittency) ;
+       production = C_7 * var.density * pow( Tu ,7/4*0.5) * F_onset * 2.0 * var.StrainMag * 
+                    var.density * var.dist * var.dist * var.StrainMag / var.laminar_viscosity *
+                    pow( templog ,0.5) * (1.0-var.intermittency) ;
     }
 
    
@@ -524,9 +646,8 @@ struct Fu2013 {
 
 };
 
-
-
-struct Wang2016 {
+/*! \brief Zhao2020 (Transition model). */
+struct Zhao2020 {
   static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
                    su2double& jacobian) {
     ComputeProduction(var, nDim, production, jacobian);
@@ -535,7 +656,27 @@ struct Wang2016 {
 
   static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
                                 su2double& jacobian) {
-    production = 0.0;
+    const su2double C_1 = 700, C_2 = 0.5, C_3 = 0.5, C_4 = 8.0e-5, C_5 = 0.07, C_6 = 1.2, C_mu = 0.09;
+
+    su2double F_onset = 0.0, TempVar1 = 0.0;
+
+    su2double zeta = 0.0, lengthScale_T = 0.0, zeta_eff = 0.0;
+    zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
+    lengthScale_T = pow(var.tke, 0.5)/(var.omega);
+    zeta_eff = min(zeta, C_1 * lengthScale_T);
+    
+    F_onset = -exp(-C_6 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+    TempVar1 = F_onset;
+    F_onset += 1.0;
+
+    if( var.intermittency == 1.0) {
+        production = 0.0;
+    }
+    else {
+       su2double templog = -1.0 * log(1.0-var.intermittency) ;
+       production = (1.0-var.intermittency) * pow( templog ,0.5) * F_onset * C_4
+                    * ( 1.0 + C_5 * pow( var.tke / 2.0 / var.Eu, 0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+    }
     jacobian = 0.0;
   }
 
@@ -546,7 +687,45 @@ struct Wang2016 {
 
 };
 
-};
+/*! \brief Menter2015 (Transition model). */
+struct Menter2015 {
+  static void get( const CIntermittencyVariables& var, const su2double& nDim, su2double& production, su2double& destruction,
+                   su2double& jacobian) {
+    ComputeProduction(var, nDim, production, jacobian);
+    ComputeDestruction(var, nDim, destruction, jacobian);
+  }
+
+  static void ComputeProduction(const CIntermittencyVariables& var, const su2double& nDim, su2double& production,
+                                su2double& jacobian) {
+    const su2double C_1 = 0.7, C_2 = 0.35, C_3 = 0.005, C_4 = 0.001, C_5 = 5.0;
+    const su2double C_6 = 8.0e-5, C_7 = 0.07, C_8 = 1.2, C_mu = 0.09;
+
+    su2double F_onset = 0.0, TempVar1 = 0.0;
+
+    su2double zeta = 0.0, lengthScale_T = 0.0, zeta_eff = 0.0;
+    zeta = pow(var.dist,2) * var.VorticityMag / pow( 2*var.Eu , 0.5);
+    lengthScale_T = pow(var.tke, 0.5)/(var.omega);
+    zeta_eff = min(zeta, lengthScale_T);
+    
+    F_onset = -exp(-C_8 * zeta_eff * pow( var.tke ,0.5) * var.norm_k / ( var.laminar_viscosity / var.density * var.norm_Eu) );
+    TempVar1 = F_onset;
+    F_onset += 1.0;
+
+    if( var.intermittency == 1.0) {
+        production = 0.0;
+    }
+    else {
+       su2double templog = -1.0 * log(1.0-var.intermittency) ;
+       production = (1.0-var.intermittency) * pow( templog ,0.5) * F_onset * C_6 
+                    * ( 1.0 + C_7 * pow( var.tke / 2.0 / var.Eu, 0.5) ) * var.dist * var.density / var.laminar_viscosity * var.norm_Eu ;
+    }
+    jacobian = 0.0;
+  }
+
+  static void ComputeDestruction(const CIntermittencyVariables& var, const su2double& nDim, su2double& destruction,
+                                 su2double& jacobian) {
+    destruction = 0.0;
+  }
 
 };
 
@@ -554,3 +733,7 @@ struct Wang2016 {
 
 
 
+
+};
+
+};

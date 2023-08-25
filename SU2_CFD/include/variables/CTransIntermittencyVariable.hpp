@@ -38,7 +38,8 @@
 
 class CTransIntermittencyVariable final : public CTurbVariable {
 protected:
-  VectorType IntermittencyVari, zeta, sgn, extraTau, deflection;
+  VectorType IntermittencyVari, zeta, sgn, extraTau, deflection, Mrel;
+  VectorType TempVar1, TempVar2, TempVar3, TempVar4, TempVar5, TempVar6;
   
 public:
   /*!
@@ -61,6 +62,10 @@ public:
 
   void SetIntermittency_Fu_Func(unsigned long iPoint, su2double zeta, su2double sgn, su2double extraTau, su2double deflection ) override;
 
+  void SetIntermittency_Wonder_Func(unsigned long iPoint, su2double tempVar1, su2double tempVar2, su2double tempVar3, su2double tempVar4, su2double tempVar5, su2double tempVar6 ) override;
+
+  void SetIntermittency_Zhou_Func(unsigned long iPoint, su2double zeta, su2double Mrel,su2double extraTau) override;
+
   /*!
    * \brief Value of separation intermittency.
    */
@@ -80,6 +85,52 @@ public:
    * \brief Value of separation intermittency.
    */
   inline su2double GetIntermit_Fu_Func_deflection(unsigned long iPoint) const override { return deflection(iPoint); }
+
+  /*!
+   * \brief Value of separation intermittency.
+   */
+  inline su2double GetIntermit_Zhou_Func_zeta(unsigned long iPoint) const override { return zeta(iPoint); }
+
+  /*!
+   * \brief Value of separation intermittency.
+   */
+  inline su2double GetIntermit_Zhou_Func_Mrel(unsigned long iPoint) const override { return Mrel(iPoint); }
+
+  /*!
+   * \brief Value of separation intermittency.
+   */
+  inline su2double GetIntermit_Zhou_Func_extraTau(unsigned long iPoint) const override { return extraTau(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var1(unsigned long iPoint) const override { return TempVar1(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var2(unsigned long iPoint) const override { return TempVar2(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var3(unsigned long iPoint) const override { return TempVar3(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var4(unsigned long iPoint) const override { return TempVar4(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var5(unsigned long iPoint) const override { return TempVar5(iPoint); }
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetIntermit_Wonder_Func_var6(unsigned long iPoint) const override { return TempVar6(iPoint); }
+
 
 
 };

@@ -44,6 +44,13 @@ CTransIntermittencyVariable::CTransIntermittencyVariable(su2double Intermittency
   sgn.resize(nPoint) = 0.0;
   extraTau.resize(nPoint) = 0.0;
   deflection.resize(nPoint) = 0.0;
+  Mrel.resize(nPoint) = 0.0;
+  TempVar1.resize(nPoint) = 0.0;
+  TempVar2.resize(nPoint) = 0.0;
+  TempVar3.resize(nPoint) = 0.0;
+  TempVar4.resize(nPoint) = 0.0;
+  TempVar5.resize(nPoint) = 0.0;
+  TempVar6.resize(nPoint) = 0.0;
 
 }
 
@@ -54,4 +61,25 @@ void CTransIntermittencyVariable::SetIntermittency_Fu_Func(unsigned long iPoint,
   sgn(iPoint) = val_sgn;
   extraTau(iPoint) = val_extraTau;
   deflection(iPoint) = val_deflection;
+}
+
+void CTransIntermittencyVariable::SetIntermittency_Wonder_Func(unsigned long iPoint, su2double var1, su2double var2 
+          , su2double var3, su2double var4, su2double var5, su2double var6) {
+
+  TempVar1(iPoint) = var1;
+  TempVar2(iPoint) = var2;
+  TempVar3(iPoint) = var3;
+  TempVar4(iPoint) = var4;
+  TempVar5(iPoint) = var5;
+  TempVar6(iPoint) = var6;
+  
+}
+
+
+void CTransIntermittencyVariable::SetIntermittency_Zhou_Func(unsigned long iPoint, su2double val_zeta, 
+          su2double val_Mrel, su2double val_extraTau) {
+
+  zeta(iPoint) = val_zeta;
+  Mrel(iPoint) = val_Mrel;
+  extraTau(iPoint) = val_extraTau;
 }

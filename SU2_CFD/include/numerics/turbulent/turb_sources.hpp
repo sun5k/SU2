@@ -713,7 +713,7 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
    * \return A lightweight const-view (read-only) of the residual/flux and Jacobians.
    */
   ResidualType<> ComputeResidual(const CConfig* config) override {
-    AD::StartPreacc();
+                            AD::StartPreacc();
     AD::SetPreaccIn(StrainMag_i);
     AD::SetPreaccIn(ScalarVar_i, nVar);
     AD::SetPreaccIn(ScalarVar_Grad_i, nVar, nDim);
@@ -726,6 +726,7 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
     AD::SetPreaccIn(Vorticity_i, 3);
     AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
     AD::SetPreaccIn(V_i[idx.Velocity() + 1]);
+    AD::SetPreaccIn(SoundSpeed_i);
 
     Density_i = V_i[idx.Density()];
     Laminar_Viscosity_i = V_i[idx.LaminarViscosity()];
@@ -763,7 +764,8 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
       /*--- If using UQ methodolgy, calculate production using perturbed Reynolds stress matrix ---*/
 
       const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
-      su2double P_Base = 0;
+      su2double P_Base = 0, ZetaFMt = 0.0;
+      const su2double Mt = pow(2.0 * ScalarVar_i[0], 0.5)/SoundSpeed_i;
 
       /*--- Apply production term modifications ---*/
       switch (sstParsedOptions.production) {
@@ -779,6 +781,20 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
 
         case SST_OPTIONS::KL:
           P_Base = sqrt(StrainMag_i*VorticityMag);
+          break;
+        
+        case SST_OPTIONS::CC_WILCOX:
+          P_Base = StrainMag_i;
+          if( Mt >= 0.25) {
+            ZetaFMt = 2.0 * (Mt * Mt - 0.25 * 0.25 );
+          }
+          break;
+
+        case SST_OPTIONS::CC_FLUENT:
+          P_Base = StrainMag_i;
+          if( Mt >= 0.25) {
+            ZetaFMt = 1.5 * (Mt * Mt - 0.25 * 0.25 );
+          }
           break;
 
         default:
@@ -825,8 +841,8 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
 
       /*--- Dissipation ---*/
 
-      su2double dk = beta_star * Density_i * ScalarVar_i[1] * ScalarVar_i[0];
-      su2double dw = beta_blended * Density_i * ScalarVar_i[1] * ScalarVar_i[1];
+      su2double dk = beta_star * Density_i * ScalarVar_i[1] * ScalarVar_i[0] * (1.0 + ZetaFMt);
+      su2double dw = beta_blended * Density_i * ScalarVar_i[1] * ScalarVar_i[1] * (1.0 - 0.09/beta_blended * ZetaFMt);
 
       /*--- LM model coupling with production and dissipation term for k transport equation---*/
       if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::LM) {
@@ -854,10 +870,10 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
 
       /*--- Implicit part ---*/
 
-      Jacobian_i[0][0] = -beta_star * ScalarVar_i[1] * Volume;
-      Jacobian_i[0][1] = -beta_star * ScalarVar_i[0] * Volume;
+      Jacobian_i[0][0] = -beta_star * ScalarVar_i[1] * Volume * (1.0 + ZetaFMt);
+      Jacobian_i[0][1] = -beta_star * ScalarVar_i[0] * Volume * (1.0 + ZetaFMt);
       Jacobian_i[1][0] = 0.0;
-      Jacobian_i[1][1] = -2.0 * beta_blended * ScalarVar_i[1] * Volume;
+      Jacobian_i[1][1] = -2.0 * beta_blended * ScalarVar_i[1] * Volume * (1.0 - 0.09/beta_blended * ZetaFMt);
     }
 
     AD::SetPreaccOut(Residual, nVar);

@@ -1751,6 +1751,29 @@ public:
   inline virtual void SetIntermittency_Fu_Func(unsigned long iPoint, su2double zeta, su2double sgn, su2double extraTau, su2double deflection ) {}
 
   /*!
+   * \brief Set the variables for the intermittency based model(Fu2013).
+   * \param[in] val_iPoint - Value of the iPoint.
+   * \param[in] tempvar1 - tempvariable.
+   * \param[in] tempvar2 - tempvariable.
+   * \param[in] tempvar3 - tempvariable.
+   * \param[in] tempvar4 - tempvariable.
+   * \param[in] tempvar5 - tempvariable.
+   * \param[in] tempvar6 - tempvariable.
+   */
+  inline virtual void SetIntermittency_Wonder_Func(unsigned long iPoint, su2double tempVar1, su2double tempVar2, su2double tempVar3, 
+                                                    su2double tempVar4, su2double tempVar5, su2double tempVar6 ) {}
+
+  /*!
+   * \brief Set the variables for the intermittency based model(Fu2013).
+   * \param[in] val_iPoint - Value of the iPoint.
+   * \param[in] zeta - Length scale.
+   * \param[in] sgn - Sign.
+   * \param[in] extraTau - Time scale.
+   * \param[in] deflection - Veolcity of deflection point.
+   */
+  inline virtual void SetIntermittency_Zhou_Func(unsigned long iPoint, su2double zeta, su2double Mrel, su2double extraTau ) {}
+
+  /*!
    * \brief Get the value of the Length scale.
    * \return the value of the Length scale.
    */
@@ -1773,6 +1796,62 @@ public:
    * \return the value of the Length scale.
    */
   inline virtual su2double GetIntermit_Fu_Func_deflection(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Zhou_Func_zeta(unsigned long iPoint) const {return 0.0;}
+  
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Zhou_Func_Mrel(unsigned long iPoint) const {return 0.0;}
+
+  /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Zhou_Func_extraTau(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var1(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var2(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var3(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var4(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var5(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetIntermit_Wonder_Func_var6(unsigned long iPoint) const {return 0.0;}
+
+
 
   /*!
    * \brief A virtual member.
