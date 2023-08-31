@@ -1059,7 +1059,7 @@ class CSourcePieceWise_TurbEQ3_KOG final : public CNumerics {
       zeta = pow(dist_i,2) * VorticityMag / pow( 2*Eu , 0.5);
       lengthScale_T = pow(ScalarVar_i[0], 0.5)/(beta_star * ScalarVar_i[1]);
       lengthScale_B = pow(ScalarVar_i[0], 0.5)/(C_mu * StrainMag_i);      
-      zeta_eff = min(min(zeta, lengthScale_T), lengthScale_B);
+      zeta_eff = min(min(zeta, lengthScale_T), 0.6 * lengthScale_B);
       F_onset = 1-exp(-C_6 * zeta_eff * pow(ScalarVar_i[0],0.5) * norm_k 
                 / ( nu * norm_Eu) );
       
