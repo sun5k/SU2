@@ -196,8 +196,10 @@ void CTurbSSTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
                                     CConfig *config, unsigned short iMesh) {
 
   const su2double a1 = constants[7];
-  bool intermitNeed =  false;
+  bool intermitNeed, Menter_kog =  false;
   if( TURB_TRANS_MODEL::INTERMITTENCY == config->GetKind_Trans_Model() ) intermitNeed = true;
+  if( config -> GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022 ) Menter_kog = true;
+  if( config -> GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::MENTER2015 ) Menter_kog = true;
   
 
   /*--- Compute turbulence gradients. ---*/
@@ -225,7 +227,7 @@ void CTurbSSTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
 
     const su2double VorticityMag = max(GeometryToolbox::Norm(3, flowNodes->GetVorticity(iPoint)), 1e-12);
     const su2double StrainMag = max(nodes->GetStrainMag(iPoint), 1e-12);
-    nodes->SetBlendingFunc(iPoint, mu, dist, rho, config->GetKind_Trans_Model());
+    nodes->SetBlendingFunc(iPoint, mu, dist, rho, config->GetKind_Trans_Model(), Menter_kog);
 
     const su2double F2 = nodes->GetF2blending(iPoint);
 
@@ -322,20 +324,20 @@ void CTurbSSTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
 
           case INTERMITTENCY_MODEL::MENTER2015 :
           zeta = transNodes -> GetIntermit_Zhou_Func_zeta(iPoint);
+          lengthScale_T = 300.0 * pow(kine,0.5) / omega ;
+          Mrel = transNodes -> GetIntermit_Zhou_Func_Mrel(iPoint);
+          zeta_eff = min(zeta, lengthScale_T);
           extraTau = transNodes -> GetIntermit_Zhou_Func_extraTau(iPoint);
-          lengthScale_B = pow(kine,0.5) /(0.09 * StrainMag);
-          lengthScale_T = pow(kine,0.5) / omega ;
-          zeta_eff = min(min(zeta, lengthScale_B), lengthScale_T);
+          deflection = transNodes -> GetIntermit_Fu_Func_deflection(iPoint);
 
           if(Mrel > 1.0) {
-            tau_nt = extraTau * zeta_eff; 
+            tau_nt = extraTau * pow(zeta_eff,1.5) + 0.5 * 2.0 * zeta_eff / deflection; 
           } else {
             tau_nt = extraTau * pow(zeta_eff,1.5);
           }
 
           mu_nt = C_mu * rho * kine * tau_nt;
           muT_temp = (1.0-g)*mu_nt + g * muT;
-
           break;
 
 
@@ -470,6 +472,10 @@ void CTurbSSTSolver::Source_Residual(CGeometry *geometry, CSolver **solver_conta
     /*--- Effective Intermittency ---*/
     if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::LM) {
       numerics->SetIntermittencyEff(solver_container[TRANS_SOL]->GetNodes()->GetIntermittencyEff(iPoint));
+    }
+
+    if (config->GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022) {
+      numerics->SetIntermittency(solver_container[TRANS_SOL]->GetNodes()->GetIntermittency(iPoint));
     }
 
     if (axisymmetric){

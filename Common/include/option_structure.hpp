@@ -969,6 +969,7 @@ enum class SST_OPTIONS {
   V,           /*!< \brief Menter k-w SST model with vorticity production terms. */
   KL,          /*!< \brief Menter k-w SST model with Kato-Launder production terms. */
   UQ,          /*!< \brief Menter k-w SST model with uncertainty quantification modifications. */
+  CC_SARKAR,   /*!< \brief Menter k-w SST model with compressibility correction of Sarkar. */
   CC_WILCOX,   /*!< \brief Menter k-w SST model with compressibility correction of Wilcox. */
   CC_FLUENT,   /*!< \brief Menter k-w SST model with compressibility correction of FLUENT. */
 };
@@ -983,6 +984,7 @@ static const MapType<std::string, SST_OPTIONS> SST_Options_Map = {
   MakePair("VORTICITY", SST_OPTIONS::V)
   MakePair("KATO-LAUNDER", SST_OPTIONS::KL)
   MakePair("UQ", SST_OPTIONS::UQ)
+  MakePair("CC_SARKAR", SST_OPTIONS::CC_SARKAR)
   MakePair("CC_WILCOX", SST_OPTIONS::CC_WILCOX)
   MakePair("CC_FLUENT", SST_OPTIONS::CC_FLUENT)
 };
@@ -996,6 +998,7 @@ struct SST_ParsedOptions {
   bool sust = false;                          /*!< \brief Bool for SST model with sustaining terms. */
   bool uq = false;                            /*!< \brief Bool for using uncertainty quantification. */
   bool modified = false;                      /*!< \brief Bool for modified (m) SST model. */
+  bool cc_Sarkar = false;                     /*!< \brief Bool for compressibility correction of Sarkar. */
   bool cc_Wilcox = false;                     /*!< \brief Bool for compressibility correction of Wilcox. */
   bool cc_Fluent = false;                     /*!< \brief Bool for compressibility correction of Fluent. */
 };
@@ -1032,6 +1035,7 @@ inline SST_ParsedOptions ParseSSTOptions(const SST_OPTIONS *SST_Options, unsigne
   const bool sst_v = IsPresent(SST_OPTIONS::V);
   const bool sst_kl = IsPresent(SST_OPTIONS::KL);
   const bool sst_uq = IsPresent(SST_OPTIONS::UQ);
+  const bool sst_cc_Sarkar = IsPresent(SST_OPTIONS::CC_SARKAR);
   const bool sst_cc_Wilcox = IsPresent(SST_OPTIONS::CC_WILCOX);
   const bool sst_cc_Fluent = IsPresent(SST_OPTIONS::CC_FLUENT);
 
@@ -1058,6 +1062,8 @@ inline SST_ParsedOptions ParseSSTOptions(const SST_OPTIONS *SST_Options, unsigne
     SSTParsedOptions.production = SST_OPTIONS::KL;
   } else if (sst_uq) {
     SSTParsedOptions.production = SST_OPTIONS::UQ;
+  } else if (sst_cc_Sarkar) {
+    SSTParsedOptions.production = SST_OPTIONS::CC_SARKAR;
   } else if (sst_cc_Wilcox) {
     SSTParsedOptions.production = SST_OPTIONS::CC_WILCOX;
   } else if (sst_cc_Fluent) {
@@ -1307,6 +1313,7 @@ enum class INTERMITTENCY_MODEL {
   ZHOU2016,   /*!< \brief Kind of transition model (Zhou et al. 2016). */
   ZHAO2020,   /*!< \brief Kind of transition model (Zhou et al. 2020). */
   MENTER2015,   /*!< \brief Kind of transition model (Menter et al. 2015). */
+  LIU2022,   /*!< \brief Kind of transition model (LIU et al. 2022). */
   DEFAULT       /*!< \brief Kind of transition correlation model (). */
 };
 static const MapType<std::string, INTERMITTENCY_MODEL > INTERMITTENCY_Models_Map = {
@@ -1316,6 +1323,7 @@ static const MapType<std::string, INTERMITTENCY_MODEL > INTERMITTENCY_Models_Map
   MakePair("ZHOU2016", INTERMITTENCY_MODEL::ZHOU2016)
   MakePair("ZHAO2020", INTERMITTENCY_MODEL::ZHAO2020)
   MakePair("MENTER2015", INTERMITTENCY_MODEL::MENTER2015)
+  MakePair("LIU2022", INTERMITTENCY_MODEL::LIU2022)
   MakePair("DEFAULT", INTERMITTENCY_MODEL::DEFAULT)
 };
 
@@ -1346,6 +1354,7 @@ inline INTERMITTENCY_ParsedOptions ParseINTERMITTENCYOptions(const INTERMITTENCY
   const bool found_Zhou =  IsPresent(INTERMITTENCY_MODEL::ZHOU2016);
   const bool found_Zhao =  IsPresent(INTERMITTENCY_MODEL::ZHAO2020);
   const bool found_Menter =  IsPresent(INTERMITTENCY_MODEL::MENTER2015);
+  const bool found_LIU2022 =  IsPresent(INTERMITTENCY_MODEL::LIU2022);
 
   if (found_Fu && found_Wang) {
     SU2_MPI::Error("Two model selected for INTERMITTENCY_MODEL. Please choose only one.", CURRENT_FUNCTION);
@@ -1359,6 +1368,8 @@ inline INTERMITTENCY_ParsedOptions ParseINTERMITTENCYOptions(const INTERMITTENCY
     INTERMITTENCYParsedOptions.Intermit_model = INTERMITTENCY_MODEL::ZHAO2020;
   } else if (found_Menter) {
     INTERMITTENCYParsedOptions.Intermit_model = INTERMITTENCY_MODEL::MENTER2015;
+  } else if (found_LIU2022) {
+    INTERMITTENCYParsedOptions.Intermit_model = INTERMITTENCY_MODEL::LIU2022;
   }
 
 

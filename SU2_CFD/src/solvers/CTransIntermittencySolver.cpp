@@ -45,6 +45,10 @@ CTransIntermittencySolver::CTransIntermittencySolver(CGeometry *geometry, CConfi
   string text_line;
 
   bool multizone = config->GetMultizone_Problem();
+  bool MenterKOG = false;
+
+  if( config -> GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022 ) MenterKOG = true;
+  if( config -> GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::MENTER2015 ) MenterKOG = true;
 
   /*--- Dimension of the problem --> 1 Transport equations (intermittency) ---*/
   nVar = 1;
@@ -98,7 +102,13 @@ CTransIntermittencySolver::CTransIntermittencySolver(CGeometry *geometry, CConfi
 
   /*--- Far-field flow state quantities and initialization. ---*/  
 
-  const su2double Intermittency_Inf  = 0.02;
+  su2double Intermittency_Inf  = 0.02;
+
+  if(MenterKOG) {
+    Intermittency_Inf = 1.0;
+    lowerlimit[0] = 0.000001;
+    upperlimit[0] = 3.0;
+  }
 
   Solution_Inf[0] = Intermittency_Inf;
 
@@ -191,6 +201,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
     const su2double dist = geometry->nodes->GetWall_Distance(iPoint);
     const su2double VorticityMag = max(GeometryToolbox::Norm(3, flowNodes->GetVorticity(iPoint)), 1e-12);
     const su2double StrainMag = max(nodes->GetStrainMag(iPoint), 1e-12);
+    const su2double sos_inf = pow(config->GetTemperature_FreeStream() * config->GetGas_Constant() * gamma_Spec,0.5);
     
     su2double tke = 0.0, omega = 0.0, norm_k = 0.0;
     tke = turbNodes->GetSolution(iPoint,0);
@@ -234,8 +245,15 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
     velMag_e = gamma_Spec / ( gamma_Spec - 1.0) * p_inf / rho_inf + 0.5 * velMag_inf * velMag_inf;
     velMag_e -= gamma_Spec / ( gamma_Spec - 1.0) * p / rho_e;
     velMag_e =pow(velMag_e * 2.0, 0.5) ;
-    Cr = 0.94 * velMag_e;
+    Cr = 0.94 * velMag_e;    
     M_rel = (Velocity_Mag - Cr)/sos;
+
+    su2double M_rel2 = 0.0, a_eL = 0.0;
+
+    a_eL = sos_inf * sos_inf /(gamma_Spec - 1.0) + velMag_inf * velMag_inf / 2.0;
+    a_eL -= velMag_e * velMag_e /2.0;
+    a_eL = pow(a_eL * (gamma_Spec - 1.0), 0.5);
+    M_rel = (Velocity_Mag - Cr)/a_eL;
 
     /*--- Tau_nt1 and Tau_nt2 ---*/
     su2double Tau_nt1_extra = 0.0,  sgn = 0.0 , Tau_extra = 0.0;
@@ -366,7 +384,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
 
     case INTERMITTENCY_MODEL::MENTER2015 :
       lengthScale_T = pow(tke, 0.5)/(omega);
-      zeta_eff = min(zeta, lengthScale_T);      
+      zeta_eff = min(zeta, 300.0 * lengthScale_T);      
 
       F_onset = -exp(-1.2 * zeta_eff * pow( tke ,0.5) * norm_k / ( mu / rho * norm_Eu) );
       TempVar1 = F_onset;
@@ -377,16 +395,22 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
       }
       else {
         templog = -1.0 * log(1.0-Intermittency) ;
-        pg = (1.0- Intermittency) * pow( templog ,0.5) * F_onset * C_6 
-                    * ( 1 + C_7 * pow( tke / 2.0 / Eu ,0.5) ) * dist * rho / mu * norm_Eu ;
+        pg = (1.0- Intermittency) * pow( templog ,0.5) * F_onset * 8.0e-5 
+                    * ( 1.0 + 0.07 * pow( tke / 2.0 / Eu ,0.5) ) * dist * rho / mu * norm_Eu ;
         test4 = pow( templog ,0.5);
         test5 = pow( tke / 2.0 / Eu ,0.5);
         test6 = dist * rho / mu * norm_Eu;
-        test7 = ( 1.0 + C_7 * pow( tke / 2.0 / Eu, 0.5) );
+        test7 = ( 1.0 + 0.07 * pow( tke / 2.0 / Eu, 0.5) );
       }
 
-      nodes -> SetIntermittency_Fu_Func(iPoint, zeta, sgn, Tau_nt1_extra, Cr);
+      Tau_extra = 0.5 / pow( pow( 2.0 * Eu, 0.5) * mu/rho ,0.5);
+      nodes -> SetIntermittency_Zhou_Func(iPoint, zeta, M_rel, Tau_extra);
+      nodes -> SetIntermittency_Fu_Func(iPoint, zeta, sgn, Tau_extra, Cr);
       nodes -> SetIntermittency_Wonder_Func(iPoint, zeta, zeta_eff, F_onset, pg, test4, test7);
+      break;
+
+    case INTERMITTENCY_MODEL::LIU2022 :
+      nodes -> SetIntermittency_Wonder_Func(iPoint, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
       break;
 
 

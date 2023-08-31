@@ -726,7 +726,7 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
     AD::SetPreaccIn(Vorticity_i, 3);
     AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
     AD::SetPreaccIn(V_i[idx.Velocity() + 1]);
-    AD::SetPreaccIn(SoundSpeed_i);
+    AD::SetPreaccIn(V_i[idx.SoundSpeed()]);
 
     Density_i = V_i[idx.Density()];
     Laminar_Viscosity_i = V_i[idx.LaminarViscosity()];
@@ -751,6 +751,11 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
       eff_intermittency = intermittency_eff_i;
     }
 
+    if (config->GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022) {
+      AD::SetPreaccIn(intermittency_i);
+      eff_intermittency = intermittency_i;
+    }
+
     if (dist_i > 1e-10) {
 
       su2double diverg = 0.0;
@@ -764,8 +769,8 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
       /*--- If using UQ methodolgy, calculate production using perturbed Reynolds stress matrix ---*/
 
       const su2double VorticityMag = GeometryToolbox::Norm(3, Vorticity_i);
-      su2double P_Base = 0, ZetaFMt = 0.0;
-      const su2double Mt = pow(2.0 * ScalarVar_i[0], 0.5)/SoundSpeed_i;
+      su2double P_Base = 0, ZetaFMt = 0.0, Dilatation_Sarkar = 0.0;
+      const su2double Mt = pow(2.0 * ScalarVar_i[0], 0.5)/V_i[idx.SoundSpeed()];
 
       /*--- Apply production term modifications ---*/
       switch (sstParsedOptions.production) {
@@ -783,6 +788,12 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
           P_Base = sqrt(StrainMag_i*VorticityMag);
           break;
         
+        case SST_OPTIONS::CC_SARKAR:
+          P_Base = sqrt(StrainMag_i*VorticityMag);
+          ZetaFMt = 0.5 * (Mt * Mt);
+          
+          break;
+
         case SST_OPTIONS::CC_WILCOX:
           P_Base = StrainMag_i;
           if( Mt >= 0.25) {
@@ -848,6 +859,17 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
       if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::LM) {
         pk = pk * eff_intermittency;
         dk = min(max(eff_intermittency, 0.1), 1.0) * dk;
+      }
+
+      /*--- LM model coupling with production and dissipation term for k transport equation---*/
+      if (config->GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022) {
+        pk = pk * eff_intermittency;
+        dk =max(eff_intermittency, 0.1) * dk;
+      }
+
+      if(sstParsedOptions.production == SST_OPTIONS::CC_SARKAR) {
+        Dilatation_Sarkar = -0.15 * pk * Mt + 0.2 * beta_star * (1.0 + ZetaFMt) * Density_i * ScalarVar_i[1] * ScalarVar_i[0] * Mt * Mt;
+        pk += Dilatation_Sarkar;
       }
 
       /*--- Add the production terms to the residuals. ---*/

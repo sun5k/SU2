@@ -6027,6 +6027,9 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
                 cout << "\nperturbing the Reynold's Stress Matrix towards " << eig_val_comp << " component turbulence";
                 if (uq_permute) cout << " (permuting eigenvectors)";
                 break;
+              case SST_OPTIONS::CC_SARKAR:
+                cout << " with compressibility correction of Sarkar";
+                break;
               case SST_OPTIONS::CC_WILCOX:
                 cout << " with compressibility correction of Wilcox";
                 break;
@@ -6084,6 +6087,7 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
             case INTERMITTENCY_MODEL::ZHOU2016: cout << "Zhou et al. (2016)" << endl;  break;
             case INTERMITTENCY_MODEL::ZHAO2020: cout << "Zhao et al. (2020)" << endl;  break;
             case INTERMITTENCY_MODEL::MENTER2015: cout << "Menter et al. (2015)" << endl;  break;
+            case INTERMITTENCY_MODEL::LIU2022: cout << "Liu et al. (2022)" << endl;  break;
             case INTERMITTENCY_MODEL::DEFAULT: SU2_MPI::Error("No intermittency option has been selected.", CURRENT_FUNCTION); break;
           }
         }
