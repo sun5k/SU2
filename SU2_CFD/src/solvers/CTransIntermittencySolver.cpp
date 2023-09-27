@@ -106,8 +106,8 @@ CTransIntermittencySolver::CTransIntermittencySolver(CGeometry *geometry, CConfi
 
   if(MenterKOG) {
     Intermittency_Inf = 1.0;
-    lowerlimit[0] = 0.000001;
-    upperlimit[0] = 3.0;
+    lowerlimit[0] = 0.02;
+    upperlimit[0] = 1.0;
   }
 
   Solution_Inf[0] = Intermittency_Inf;

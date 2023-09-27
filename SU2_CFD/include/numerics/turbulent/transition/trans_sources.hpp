@@ -487,7 +487,7 @@ class CSourceBase_TransIntermittency : public CNumerics {
       const su2double sos_inf = pow(config->GetTemperature_FreeStream() * config->GetGas_Constant() * gamma_Spec,0.5);
       const su2double temperautre_local = V_i[idx.Temperature()];
 
-      var.rho_eL = pow(rho_inf,gamma_Spec)/p_inf*p;
+      var.rho_eL = pow(rho_inf,gamma_Spec) * p / p_inf;
       var.rho_eL = pow(var.rho_eL,1/gamma_Spec);
       var.U_eL = gamma_Spec / ( gamma_Spec - 1.0) * p_inf / rho_inf + 0.5 * velMag_inf * velMag_inf;
       var.U_eL -= gamma_Spec / ( gamma_Spec - 1.0) * p / var.rho_eL;
@@ -839,7 +839,7 @@ struct Liu2022 {
     } 
     else {
       //isothermal
-      f_a = -0.1871 * pow(var.Ma_eL, 3) + 2.9  * pow(var.Ma_eL, 2) +2.958  * var.Ma_eL + 99.41;
+      f_a = -0.1871 * pow(var.Ma_eL, 3) + 2.9  * pow(var.Ma_eL, 2) + 2.958 * var.Ma_eL + 99.41;
       f_b = 4.715e-4 * pow(var.Ma_eL, 3) - 0.006389 * pow(var.Ma_eL, 2) - 0.02174 * var.Ma_eL - 0.7565;
       f_c = -0.001551 * pow(var.Ma_eL, 3) + 0.03085 * pow(var.Ma_eL, 2) + 0.01819  * var.Ma_eL + 0.8891;
       fMaeLTeL = f_a * pow(var.T_eL,f_b) + f_c;
@@ -862,10 +862,13 @@ struct Liu2022 {
     F_onset1 = max(Fonset_s, Fonset_cf);
     F_onset2 = min(max(F_onset1, pow(F_onset1, 4.0)), 2.0);
     F_onset3 = max(1.0 - pow( R_t / 3.5, 3.0), 0.0);
+    if( var.cordiX > 0.05 && var.cordiY < 0.00001){
+      su2double testmpppp = 0.0;
+    }
 
     const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
     production = C_1 * var.density * var.StrainMag * var.intermittency * (1.0 - var.intermittency) * F_onset;
-    jacobian += C_1 * var.StrainMag * (1.0 - 2.0 * var.intermittency/var.density) * F_onset;
+    jacobian += C_1 * var.StrainMag * (1.0 - 2.0 * var.intermittency) * F_onset;
 
   }
 
@@ -876,7 +879,7 @@ struct Liu2022 {
     const su2double f_turb = exp(-pow(R_t / 2, 2));
     const su2double C_2 = 0.06, C_3 = 50.0;
     destruction = C_2 * var.density * var.VorticityMag * var.intermittency * f_turb * (C_3 * var.intermittency -1.0);
-    jacobian -= C_2 * var.VorticityMag * f_turb * (C_3 * 2.0 * var.intermittency / var.density -1.0);
+    jacobian -= C_2 * var.VorticityMag * f_turb * (C_3 * 2.0 * var.intermittency -1.0);
 
   }
 

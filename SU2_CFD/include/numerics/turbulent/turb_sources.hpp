@@ -789,7 +789,7 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
           break;
         
         case SST_OPTIONS::CC_SARKAR:
-          P_Base = sqrt(StrainMag_i*VorticityMag);
+          P_Base = StrainMag_i;
           ZetaFMt = 0.5 * (Mt * Mt);
           
           break;
