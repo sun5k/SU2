@@ -649,6 +649,7 @@ private:
 
   su2double Mach;             /*!< \brief Mach number. */
   su2double Reynolds;         /*!< \brief Reynolds number. */
+  su2double Nose_Reynolds;    /*!< \brief Nose Radius Reynolds Number. */
   su2double Froude;           /*!< \brief Froude number. */
   su2double Length_Reynolds;  /*!< \brief Reynolds length (dimensional). */
   su2double AoA,              /*!< \brief Angle of attack (just external flow). */
@@ -2349,6 +2350,12 @@ public:
   su2double GetReynolds(void) const { return Reynolds; }
 
   /*!
+   * \brief Set the nose radius Reynolds number. 
+   * \return Value of the nose radius Reynolds number.
+   */
+  su2double GetNose_Reynolds(void) const { return Nose_Reynolds; }
+
+  /*!
    * \brief Get the Froude number for free surface problems.
    * \return Value of the Froude number.
    */
@@ -2371,6 +2378,12 @@ public:
    * \param[in] val_reynolds - Value of the Reynolds number.
    */
   void SetReynolds(su2double val_reynolds) { Reynolds = val_reynolds; }
+
+  /*!
+   * \brief Set the Nose Reynolds number.
+   * \param[in] val_nose_reynolds - Value of the nose_Reynolds number.
+   */
+  void SetNoseReynolds(su2double val_nose_reynolds) { Nose_Reynolds = val_nose_reynolds; }
 
   /*!
    * \brief Set the reference length for nondimensionalization.

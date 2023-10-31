@@ -1314,6 +1314,8 @@ void CConfig::SetConfig_Options() {
   addDoubleOption("FREESTREAM_TEMPERATURE", Temperature_FreeStream, 288.15);
   /*!\brief FREESTREAM_TEMPERATURE_VE\n DESCRIPTION: Free-stream vibrational-electronic temperature (288.15 K by default) \ingroup Config*/
   addDoubleOption("FREESTREAM_TEMPERATURE_VE", Temperature_ve_FreeStream, 288.15);
+  /*!\brief NOSE_REYNOLDS_NUMBER \n DESCRIPTION: Nose Reynolds number (non-dimensional, based on the free-stream values). Needed for transition model. \n DEFAULT: 0.0 \ingroup Config */
+  addDoubleOption("NOSE_REYNOLDS_NUMBER", Nose_Reynolds, 0.0);
 
 
   /*--- Options related to incompressible flow solver ---*/

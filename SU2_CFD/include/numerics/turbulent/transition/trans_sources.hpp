@@ -342,7 +342,7 @@ struct CIntermittencyVariables {
             Eu = 0.0, norm_Eu = 0.0, norm_k = 0.0, tke = 0.0, omega = 0.0, intermittency = 0.0,
             eddyViscousity = 0.0;
   
-  su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, Ma_eL = 0.0, He = 0.0;
+  su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, Ma_eL = 0.0, He = 0.0, Rn =0.0;
 
   bool Liu2022_WallType = false;
             
@@ -443,8 +443,7 @@ class CSourceBase_TransIntermittency : public CNumerics {
 
     var.Eu = 0.5*pow( var.Velocity_Mag, 2.0);
     TT = 0.5 * (V_i[idx.Velocity()] * V_i[idx.Velocity()] + V_i[idx.Velocity()+1] * V_i[idx.Velocity()+1]);
-
-    
+    var.Rn = config->GetNose_Reynolds();
 
     Residual = 0.0;
     Jacobian_i[0] = 0.0;
@@ -845,6 +844,8 @@ struct Liu2022 {
       fMaeLTeL = f_a * pow(var.T_eL,f_b) + f_c;
     }
 
+    F_nose = (0.59*var.Rn +6500.0)/(var.Rn +6500.0);
+
     TuL = min(100.0 * sqrt(2.0 * var.tke /3.0) / var.omega / var.dist , 100.0);
     RetMae_c = 1034.0 * exp(-97.56 * TuL * F_nose) + 440.0 * exp(-1.96*TuL * F_nose);
     Re_tc = RetMae_c * var.Ma_eL;
@@ -861,10 +862,7 @@ struct Liu2022 {
   
     F_onset1 = max(Fonset_s, Fonset_cf);
     F_onset2 = min(max(F_onset1, pow(F_onset1, 4.0)), 2.0);
-    F_onset3 = max(1.0 - pow( R_t / 3.5, 3.0), 0.0);
-    if( var.cordiX > 0.05 && var.cordiY < 0.00001){
-      su2double testmpppp = 0.0;
-    }
+    F_onset3 = max(1.0 - pow( R_t / 3.5, 3.0), 0.0);    
 
     const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
     production = C_1 * var.density * var.StrainMag * var.intermittency * (1.0 - var.intermittency) * F_onset;

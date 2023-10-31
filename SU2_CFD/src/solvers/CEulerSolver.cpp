@@ -782,6 +782,7 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
   su2double Beta          = config->GetAoS()*PI_NUMBER/180.0;
   su2double Mach          = config->GetMach();
   su2double Reynolds      = config->GetReynolds();
+  su2double NoseReynolds  = config->GetNose_Reynolds();
   bool unsteady           = (config->GetTime_Marching() != TIME_MARCHING::STEADY);
   bool viscous            = config->GetViscous();
   bool gravity            = config->GetGravityForce();
@@ -943,6 +944,7 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
     /*--- Turbulence kinetic energy ---*/
 
     Tke_FreeStream  = 3.0/2.0*(ModVel_FreeStream*ModVel_FreeStream*config->GetTurbulenceIntensity_FreeStream()*config->GetTurbulenceIntensity_FreeStream());
+    
 
   }
   else {
@@ -1348,6 +1350,9 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
     NonDimTable << "Mach Number" << "-" << "-" << "-" << config->GetMach();
     if (viscous){
       NonDimTable << "Reynolds Number" << "-" << "-" << "-" << config->GetReynolds();
+      if (config-> GetKind_Trans_Model() == TURB_TRANS_MODEL::INTERMITTENCY){
+        NonDimTable << "Nose Reynolds Number" << "-" << "-" << "-" << config->GetNose_Reynolds();
+      }
     }
     if (gravity) {
       NonDimTable << "Froude Number" << "-" << "-" << "-" << Froude;

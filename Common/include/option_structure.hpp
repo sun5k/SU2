@@ -2433,7 +2433,9 @@ enum ENUM_DIRECTDIFF_VAR {
   D_POISSON = 12,     /*!< \brief Derivative w.r.t. the Poisson's ratio */
   D_RHO = 13,         /*!< \brief Derivative w.r.t. the solid density (inertial) */
   D_RHO_DL = 14,      /*!< \brief Derivative w.r.t. the density for dead loads */
-  D_EFIELD = 15       /*!< \brief Derivative w.r.t. the electric field */
+  D_EFIELD = 15,      /*!< \brief Derivative w.r.t. the electric field */
+  D_NOSEREYNOLDS = 16 /*!< \brief Derivative w.r.t. the nose Reynolds number */
+  
 };
 static const MapType<std::string, ENUM_DIRECTDIFF_VAR> DirectDiff_Var_Map = {
   MakePair("NONE", NO_DERIVATIVE)
@@ -2452,6 +2454,7 @@ static const MapType<std::string, ENUM_DIRECTDIFF_VAR> DirectDiff_Var_Map = {
   MakePair("STRUCTURAL_DENSITY", D_RHO)
   MakePair("STRUCTURAL_DEAD_LOAD", D_RHO_DL)
   MakePair("ELECTRIC_FIELD", D_EFIELD)
+  MakePair("NOSE_REYNOLDS_NUMBER", D_NOSEREYNOLDS)
 };
 
 
