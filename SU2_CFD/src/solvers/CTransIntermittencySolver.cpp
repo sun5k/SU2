@@ -282,6 +282,28 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
 
     }
 
+    su2double He = 0;
+
+
+    if(nDim == 2) {
+        He = 0.0;
+      }
+      else {
+        const su2double unitU = V_i[idx.Velocity()]/var.Velocity_Mag, unitV = V_i[idx.Velocity()+1]/var.Velocity_Mag, unitW = V_i[idx.Velocity()+2]/var.Velocity_Mag;
+        const su2double vorticity_x = Vorticity_i[0], vorticity_y = Vorticity_i[1], vorticity_z = Vorticity_i[2];
+        const su2double UVor_x = unitU * vorticity_x, VVor_y = unitV * vorticity_y, WVor_z = unitW * vorticity_z;
+
+        He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
+      }
+
+      su2double Ma_eL = velMag_e / a_eL;
+      su2double T_eL = a_eL * a_eL / gamma_Spec/ config->GetGas_Constant();
+      su2double fMaeLTeL = 0.0, f_a = 0.0, f_b = 0.0, f_c = 0.0;
+      f_a = -0.1871 * pow(Ma_eL, 3) + 2.9  * pow(Ma_eL, 2) + 2.958 * Ma_eL + 99.41;
+      f_b = 4.715e-4 * pow(Ma_eL, 3) - 0.006389 * pow(Ma_eL, 2) - 0.02174 * Ma_eL - 0.7565;
+      f_c = -0.001551 * pow(Ma_eL, 3) + 0.03085 * pow(Ma_eL, 2) + 0.01819  * Ma_eL + 0.8891;
+      fMaeLTeL = f_a * pow(T_eL,f_b) + f_c;
+
 
 
 
@@ -410,7 +432,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
       break;
 
     case INTERMITTENCY_MODEL::LIU2022 :
-      nodes -> SetIntermittency_Wonder_Func(iPoint, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+      nodes -> SetIntermittency_Wonder_Func(iPoint, M_rel, He, 0.0, 0.0, 0.0, 0.0 );
       break;
 
 
