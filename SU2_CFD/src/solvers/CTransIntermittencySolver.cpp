@@ -289,8 +289,8 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
         He = 0.0;
       }
       else {
-        const su2double unitU = V_i[idx.Velocity()]/var.Velocity_Mag, unitV = V_i[idx.Velocity()+1]/var.Velocity_Mag, unitW = V_i[idx.Velocity()+2]/var.Velocity_Mag;
-        const su2double vorticity_x = Vorticity_i[0], vorticity_y = Vorticity_i[1], vorticity_z = Vorticity_i[2];
+        const su2double unitU = vel_u/Velocity_Mag, unitV = vel_v/Velocity_Mag, unitW = vel_w/Velocity_Mag;
+        const su2double vorticity_x = flowNodes->GetVorticity(iPoint)[0], vorticity_y = flowNodes->GetVorticity(iPoint)[1], vorticity_z = flowNodes->GetVorticity(iPoint)[2];
         const su2double UVor_x = unitU * vorticity_x, VVor_y = unitV * vorticity_y, WVor_z = unitW * vorticity_z;
 
         He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
