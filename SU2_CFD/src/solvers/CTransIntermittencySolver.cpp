@@ -282,7 +282,22 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
 
     }
 
+    // Liu M_e
     su2double He = 0;
+
+    su2double rho_eL = 0.0;
+    su2double U_eL = 0.0;
+    su2double Ma_eL = 0.0;
+
+    rho_eL = pow(rho_inf,gamma_Spec) * p / p_inf;
+    rho_eL = pow(rho_eL,1/gamma_Spec);
+    U_eL = gamma_Spec / ( gamma_Spec - 1.0) * p_inf / rho_inf + 0.5 * velMag_inf * velMag_inf;
+    U_eL -= gamma_Spec / ( gamma_Spec - 1.0) * p / rho_eL;
+    U_eL =pow(U_eL * 2.0, 0.5) ;
+    a_eL = sos_inf * sos_inf /(gamma_Spec - 1.0) + velMag_inf * velMag_inf / 2.0;
+    a_eL -= U_eL * U_eL /2.0;
+    a_eL = pow(a_eL * (gamma_Spec - 1.0), 0.5);
+    Ma_eL = U_eL / a_eL;
 
 
     if(nDim == 2) {
@@ -296,7 +311,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
         He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
       }
 
-      su2double Ma_eL = velMag_e / a_eL;
+      
       su2double T_eL = a_eL * a_eL / gamma_Spec/ config->GetGas_Constant();
       su2double fMaeLTeL = 0.0, f_a = 0.0, f_b = 0.0, f_c = 0.0;
       f_a = -0.1871 * pow(Ma_eL, 3) + 2.9  * pow(Ma_eL, 2) + 2.958 * Ma_eL + 99.41;
@@ -432,7 +447,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
       break;
 
     case INTERMITTENCY_MODEL::LIU2022 :
-      nodes -> SetIntermittency_Wonder_Func(iPoint, M_rel, He, 0.0, 0.0, 0.0, 0.0 );
+      nodes -> SetIntermittency_Wonder_Func(iPoint, Ma_eL, He, 0.0, 0.0, 0.0, 0.0 );
       break;
 
 

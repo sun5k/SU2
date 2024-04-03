@@ -856,7 +856,7 @@ struct Liu2022 {
     const su2double Re_v = var.density * var.dist * var.dist * var.StrainMag / var.laminar_viscosity;
 
     Fonset_s = Re_v / fMaeLTeL / Re_tc;
-    Fonset_cf = delH_cf * Re_v / fMaeLTeL / 46.0;
+    Fonset_cf = delH_cf * Re_v / fMaeLTeL / 24.0;
 
     const su2double R_t = var.density * var.tke / var.laminar_viscosity / var.omega;
   
