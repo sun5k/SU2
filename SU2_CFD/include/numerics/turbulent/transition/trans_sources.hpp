@@ -859,7 +859,7 @@ struct Liu2022 {
     Fonset_cf = delH_cf * Re_v / fMaeLTeL / 24.0;
 
     const su2double R_t = var.density * var.tke / var.laminar_viscosity / var.omega;
-  
+    Fonset_cf = 0.0;
     F_onset1 = max(Fonset_s, Fonset_cf);
     F_onset2 = min(max(F_onset1, pow(F_onset1, 4.0)), 2.0);
     F_onset3 = max(1.0 - pow( R_t / 3.5, 3.0), 0.0);    

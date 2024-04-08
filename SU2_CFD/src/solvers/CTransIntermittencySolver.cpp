@@ -284,7 +284,8 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
 
     // Liu M_e
     su2double He = 0;
-
+    su2double Rev = 0.0, Fonset_cf = 0.0, Fonset_s =0.0;
+    su2double RetMae_c = 0.0, TuL = 0.0, Re_tc = 0.0, F_nose = 24146.35;
     su2double rho_eL = 0.0;
     su2double U_eL = 0.0;
     su2double Ma_eL = 0.0;
@@ -312,12 +313,25 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
       }
 
       
-      su2double T_eL = a_eL * a_eL / gamma_Spec/ config->GetGas_Constant();
-      su2double fMaeLTeL = 0.0, f_a = 0.0, f_b = 0.0, f_c = 0.0;
-      f_a = -0.1871 * pow(Ma_eL, 3) + 2.9  * pow(Ma_eL, 2) + 2.958 * Ma_eL + 99.41;
-      f_b = 4.715e-4 * pow(Ma_eL, 3) - 0.006389 * pow(Ma_eL, 2) - 0.02174 * Ma_eL - 0.7565;
-      f_c = -0.001551 * pow(Ma_eL, 3) + 0.03085 * pow(Ma_eL, 2) + 0.01819  * Ma_eL + 0.8891;
-      fMaeLTeL = f_a * pow(T_eL,f_b) + f_c;
+    su2double T_eL = a_eL * a_eL / gamma_Spec/ config->GetGas_Constant();
+    su2double fMaeLTeL = 0.0, f_a = 0.0, f_b = 0.0, f_c = 0.0;
+    f_a = -0.1871 * pow(Ma_eL, 3) + 2.9  * pow(Ma_eL, 2) + 2.958 * Ma_eL + 99.41;
+    f_b = 4.715e-4 * pow(Ma_eL, 3) - 0.006389 * pow(Ma_eL, 2) - 0.02174 * Ma_eL - 0.7565;
+    f_c = -0.001551 * pow(Ma_eL, 3) + 0.03085 * pow(Ma_eL, 2) + 0.01819  * Ma_eL + 0.8891;
+    fMaeLTeL = f_a * pow(T_eL,f_b) + f_c;
+    su2double muT = 0.0;
+    muT = turbNodes->GetmuT(iPoint);
+    su2double Hcf = 0.0, del_Hcf;
+    Hcf = He* dist /velMag_inf;
+    del_Hcf = Hcf * (1+ min( muT/mu ,0.3));
+    Rev = rho * dist * dist * StrainMag / mu;
+    TuL = min(100.0 * sqrt(2.0 * tke /3.0) / omega / dist , 100.0);
+    RetMae_c = 1034.0 * exp(-97.56 * TuL * F_nose) + 440.0 * exp(-1.96*TuL * F_nose);
+    Re_tc = RetMae_c * Ma_eL;
+    Re_tc = min( max(Re_tc, 100.0), 1500.0);
+    Fonset_s = Rev/fMaeLTeL/Re_tc;
+    Fonset_cf = del_Hcf * Rev / fMaeLTeL / 24.0;
+
 
 
 
@@ -447,7 +461,7 @@ void CTransIntermittencySolver::Postprocessing(CGeometry *geometry, CSolver **so
       break;
 
     case INTERMITTENCY_MODEL::LIU2022 :
-      nodes -> SetIntermittency_Wonder_Func(iPoint, Ma_eL, He, 0.0, 0.0, 0.0, 0.0 );
+      nodes -> SetIntermittency_Wonder_Func(iPoint, Ma_eL, He, Fonset_s, Fonset_cf, 0.0, 0.0 );
       break;
 
 
