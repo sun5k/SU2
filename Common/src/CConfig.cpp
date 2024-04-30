@@ -6051,7 +6051,11 @@ void CConfig::SetOutput(SU2_COMPONENT val_software, unsigned short val_izone) {
             cout << "Transition model: Langtry and Menter's 4 equation model";
             if (lmParsedOptions.LM2015) {
               cout << " w/ cross-flow corrections (2015)" << endl;
-            } else {
+            } 
+            else if(lmParsedOptions.LMFAN) {
+              cout << " w/ Fan et al. Hypersonic corrections (2024)" << endl;
+            }
+            else {
               cout << " (2009)" << endl;
             }
             break;
