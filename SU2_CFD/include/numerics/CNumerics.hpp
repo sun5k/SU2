@@ -83,6 +83,8 @@ protected:
   intermittency_eff_i, /*!< \brief effective intermittency at point i. */
   intermittency_i; /*!< \brief intermittency at point i. */
   su2double
+  lnintermittency_i; /*!< \brief ln intermittency at point i. */
+  su2double
   Pressure_i,  /*!< \brief Pressure at point i. */
   Pressure_j;  /*!< \brief Pressure at point j. */
   su2double
@@ -184,6 +186,7 @@ protected:
   su2double MeanPerturbedRSM[3][3];   /*!< \brief Perturbed Reynolds stress tensor  */
   SST_ParsedOptions sstParsedOptions; /*!< \brief additional options for the SST turbulence model */
   INTERMITTENCY_ParsedOptions IntermittencyParsedOptions; /*!< \brief additional options for the intermittency transition model */
+  AFMT_ParsedOptions afmtParsedOptions; /*!< \brief additional options for the Amplification Factor for Mack 2nd mode Transport model */
   unsigned short Eig_Val_Comp;    /*!< \brief Component towards which perturbation is perfromed */
   su2double uq_delta_b;           /*!< \brief Magnitude of perturbation */
   su2double uq_urlx;              /*!< \brief Under-relaxation factor for numerical stability */
@@ -731,6 +734,14 @@ public:
    * \param[in] intermittency_eff_i - Value of the effective intermittency at point i.
    */
   su2double GetIntermittencyEff() const { return intermittency_eff_i; }
+
+  /*!
+   * \brief Set the value of the intermittency for the LM model.
+   * \param[in] intermittency_i - Value of the intermittency at point i.
+   */
+  void SetLnIntermittency(su2double val_lnintermittency_i) {
+    lnintermittency_i = val_lnintermittency_i;
+  }
 
   /*!
    * \brief Set the gradient of the auxiliary variables.

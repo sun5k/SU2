@@ -36,6 +36,7 @@
 #include "../../include/solvers/CTurbSASolver.hpp"
 #include "../../include/solvers/CTurbSSTSolver.hpp"
 #include "../../include/solvers/CTransLMSolver.hpp"
+#include "../../include/solvers/CTransAFMTSolver.hpp"
 #include "../../include/solvers/CTransIntermittencySolver.hpp"
 #include "../../include/solvers/CAdjEulerSolver.hpp"
 #include "../../include/solvers/CAdjNSSolver.hpp"
@@ -383,6 +384,13 @@ CSolver* CSolverFactory::CreateTransSolver(TURB_TRANS_MODEL kindTransModel, CSol
         transSolver->Postprocessing(geometry, solver, config, iMGLevel);
         solver[FLOW_SOL]->Preprocessing(geometry, solver, config, iMGLevel, NO_RK_ITER, RUNTIME_FLOW_SYS, false);
         break;
+
+      case TURB_TRANS_MODEL::AFMT :
+        transSolver = new CTransAFMTSolver(geometry, config, iMGLevel);
+        solver[FLOW_SOL]->Preprocessing(geometry, solver, config, iMGLevel, NO_RK_ITER, RUNTIME_FLOW_SYS, false);
+        transSolver->Postprocessing(geometry, solver, config, iMGLevel);
+        solver[FLOW_SOL]->Preprocessing(geometry, solver, config, iMGLevel, NO_RK_ITER, RUNTIME_FLOW_SYS, false);
+        break;  
 
       case TURB_TRANS_MODEL::INTERMITTENCY :
         transSolver = new CTransIntermittencySolver(geometry, config, iMGLevel);

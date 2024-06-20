@@ -3166,6 +3166,18 @@ public:
   inline virtual su2double GetReThetaT_Inf() const { return 0; }
 
   /*!
+   * \brief Get value of the natural logarithnm Intermittency.
+   * \return Value of the Intermittency.
+   */
+  inline virtual su2double GetLnIntermittency_Inf() const { return 0; }
+
+  /*!
+   * \brief Get value of the momentum thickness Reynolds number.
+   * \return Value of the momentum thickness Reynolds number.
+   */
+  inline virtual su2double GetAF_Inf() const { return 0; }
+
+  /*!
    * \brief A virtual member.
    * \return Value of the sensitivity coefficient for the Young Modulus E
    */
@@ -4339,6 +4351,9 @@ protected:
                                                   unsigned long* idxMax) {
     res = fabs(res);
     resRMS[iVar] += res * res;
+    if(iPoint>13000){
+      su2double i = 13011;
+    }
     if (res > resMax[iVar]) {
       resMax[iVar] = res;
       idxMax[iVar] = iPoint;

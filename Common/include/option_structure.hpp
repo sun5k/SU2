@@ -1182,10 +1182,12 @@ enum class TURB_TRANS_MODEL {
   NONE,  /*!< \brief No transition model. */
   LM,    /*!< \brief Kind of transition model (Langtry-Menter (LM) for SST and Spalart-Allmaras). */
   INTERMITTENCY, /*!< \brief Kind of transition model (Intermittency for SST and Spalart-Allmaras). */
+  AFMT,  /*!< \brief Kind of transition model (Amplification Factor for Mack 2nd mode Transport model for SST). */
 };
 static const MapType<std::string, TURB_TRANS_MODEL> Trans_Model_Map = {
   MakePair("NONE", TURB_TRANS_MODEL::NONE)
   MakePair("LM", TURB_TRANS_MODEL::LM)
+  MakePair("AFMT", TURB_TRANS_MODEL::AFMT)
   MakePair("INTERMITTENCY", TURB_TRANS_MODEL::INTERMITTENCY)
 };
 
@@ -1305,6 +1307,78 @@ inline LM_ParsedOptions ParseLMOptions(const LM_OPTIONS *LM_Options, unsigned sh
   }
 
   return LMParsedOptions;
+}
+
+
+/*!
+ * \brief AFMT Options
+ */
+enum class AFMT_OPTIONS {
+  NONE,         /*!< \brief No option / default. */
+  Liu2023,       /*!< \brief using dN/dRe corrections of Liu2023. */
+  sok,       /*!< \brief using dN/dRe corrections of sok. */
+  DEFAULT       /*!< \brief using dN/dRe corrections of sok. */
+};
+
+static const MapType<std::string, AFMT_OPTIONS> AFMT_Options_Map = {
+  MakePair("NONE", AFMT_OPTIONS::NONE)
+  MakePair("Liu2023", AFMT_OPTIONS::Liu2023)
+  MakePair("sok", AFMT_OPTIONS::sok)
+  MakePair("DEFAULT", AFMT_OPTIONS::DEFAULT)
+};
+
+/*!
+ * \brief Types of transition correlations
+ */
+enum class AFMT_CORRELATION {  
+  Liu2023,   /*!< \brief Kind of transition correlation model (Liu2023). */
+  sok,          /*!< \brief Kind of transition correlation model (sok). */
+  DEFAULT       /*!< \brief Kind of transition correlation model (sok). */
+};
+
+/*!
+ * \brief Structure containing parsed LM options.
+ */
+struct AFMT_ParsedOptions {
+  AFMT_OPTIONS version = AFMT_OPTIONS::NONE;  /*!< \brief AFMT base model. */
+  bool Liu2023 = false;                    /*!< \brief using dN/dRe of Liu corrections. */
+  bool sok = false;                    /*!< \brief using dN/dRe of sok corrections. */
+  AFMT_CORRELATION Correlation = AFMT_CORRELATION::DEFAULT;
+};
+
+/*!
+ * \brief Function to parse AFMT options.
+ * \param[in] AFMT_Options - Selected AFMT option from config.
+ * \param[in] nAFMT_Options - Number of options selected.
+ * \param[in] rank - MPI rank.
+ * \return Struct with AFMT options.
+ */
+inline AFMT_ParsedOptions ParseAFMTOptions(const AFMT_OPTIONS *AFMT_Options, unsigned short nAFMT_Options, int rank) {
+  AFMT_ParsedOptions AFMTParsedOptions;
+
+  auto IsPresent = [&](AFMT_OPTIONS option) {
+    const auto afmt_options_end = AFMT_Options + nAFMT_Options;
+    return std::find(AFMT_Options, afmt_options_end, option) != afmt_options_end;
+  };
+
+  AFMTParsedOptions.Liu2023 = IsPresent(AFMT_OPTIONS::Liu2023);
+  AFMTParsedOptions.sok = IsPresent(AFMT_OPTIONS::sok);
+
+  int NFoundCorrelations = 0;
+  if (IsPresent(AFMT_OPTIONS::Liu2023)) {
+    AFMTParsedOptions.Correlation = AFMT_CORRELATION::Liu2023;
+    NFoundCorrelations++;
+  }
+  if (IsPresent(AFMT_OPTIONS::sok)) {
+    AFMTParsedOptions.Correlation = AFMT_CORRELATION::sok;
+    NFoundCorrelations++;
+  }  
+
+  if (NFoundCorrelations > 1) {
+    SU2_MPI::Error("Two correlations selected for AFMT_OPTIONS. Please choose only one.", CURRENT_FUNCTION);
+  }
+
+  return AFMTParsedOptions;
 }
 
 

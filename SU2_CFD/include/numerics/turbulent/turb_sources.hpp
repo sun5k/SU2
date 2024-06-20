@@ -751,6 +751,12 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
       eff_intermittency = intermittency_eff_i;
     }
 
+    if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::AFMT) {
+      AD::SetPreaccIn(intermittency_i);
+      eff_intermittency = exp(intermittency_i);
+      eff_intermittency = 0.0;
+    }
+
     if (config->GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022) {
       AD::SetPreaccIn(intermittency_i);
       eff_intermittency = intermittency_i;
@@ -857,6 +863,11 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
 
       /*--- LM model coupling with production and dissipation term for k transport equation---*/
       if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::LM) {
+        pk = pk * eff_intermittency;
+        dk = min(max(eff_intermittency, 0.1), 1.0) * dk;
+      }
+
+      if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::AFMT) {
         pk = pk * eff_intermittency;
         dk = min(max(eff_intermittency, 0.1), 1.0) * dk;
       }

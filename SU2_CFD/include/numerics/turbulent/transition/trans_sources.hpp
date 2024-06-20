@@ -426,6 +426,213 @@ class CSourcePieceWise_TransLM final : public CNumerics {
 
 
 /*!
+ * \class CSourcePieceWise_TranAFMT
+ * \brief Class for integrating the source terms of the AFMT transition model equations.
+ * \ingroup SourceDiscr
+ * \author S. Kang.
+ */
+template <class FlowIndices>
+class CSourcePieceWise_TransAFMT final : public CNumerics {
+ private:
+  const FlowIndices idx; /*!< \brief Object to manage the access to the flow primitives. */
+
+  const AFMT_ParsedOptions options;
+
+  /*--- AFMT Closure constants ---*/
+  const su2double c_1 = 100.0;
+  const su2double c_2 = 0.06;
+  const su2double c_3 = 50.0;  
+
+  TURB_FAMILY TurbFamily;
+  su2double Residual[2];
+  su2double* Jacobian_i[2];
+  su2double Jacobian_Buffer[4];  // Static storage for the Jacobian (which needs to be pointer for return type).
+
+  TransAFMTCorrelations TransCorrelations;
+
+ public:
+  /*!
+   * \brief Constructor of the class.
+   * \param[in] val_nDim - Number of dimensions of the problem.
+   * \param[in] val_nVar - Number of variables of the problem.
+   * \param[in] config - Definition of the particular problem.
+   */
+  CSourcePieceWise_TransAFMT(unsigned short val_nDim, unsigned short val_nVar, const CConfig* config)
+      : CNumerics(val_nDim, 2, config), idx(val_nDim, config->GetnSpecies()), options(config->GetAFMTParsedOptions()){
+    /*--- "Allocate" the Jacobian using the static buffer. ---*/
+    Jacobian_i[0] = Jacobian_Buffer;
+    Jacobian_i[1] = Jacobian_Buffer + 2;
+
+    TurbFamily = TurbModelFamily(config->GetKind_Turb_Model());
+
+    TransCorrelations.SetOptions(options);
+
+  }
+
+  /*!
+   * \brief Residual for source term integration.
+   * \param[in] config - Definition of the particular problem.
+   * \return A lightweight const-view (read-only) of the residual/flux and Jacobians.
+   */
+  ResidualType<> ComputeResidual(const CConfig* config) override {
+    /*--- ScalarVar[0] = k, ScalarVar[0] = w, TransVar[0] = Amplification Factor, and TransVar[1] = Gamma ---*/
+    /*--- dU/dx = PrimVar_Grad[1][0] ---*/
+    AD::StartPreacc();
+    AD::SetPreaccIn(StrainMag_i);
+    AD::SetPreaccIn(ScalarVar_i, nVar);
+    AD::SetPreaccIn(ScalarVar_Grad_i, nVar, nDim);
+    AD::SetPreaccIn(TransVar_i, nVar);
+    AD::SetPreaccIn(TransVar_Grad_i, nVar, nDim);
+    AD::SetPreaccIn(Volume);
+    AD::SetPreaccIn(dist_i);
+    AD::SetPreaccIn(&V_i[idx.Velocity()], nDim);
+    AD::SetPreaccIn(PrimVar_Grad_i, nDim + idx.Velocity(), nDim);
+    AD::SetPreaccIn(Vorticity_i, 3);
+
+    su2double VorticityMag =
+        sqrt(Vorticity_i[0] * Vorticity_i[0] + Vorticity_i[1] * Vorticity_i[1] + Vorticity_i[2] * Vorticity_i[2]);
+
+    const su2double vel_u = V_i[idx.Velocity()];
+    const su2double vel_v = V_i[1 + idx.Velocity()];
+    const su2double vel_w = (nDim == 3) ? V_i[2 + idx.Velocity()] : 0.0;
+
+    const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
+
+    AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
+
+    Density_i = V_i[idx.Density()];
+    Laminar_Viscosity_i = V_i[idx.LaminarViscosity()];
+    Eddy_Viscosity_i = V_i[idx.EddyViscosity()];
+
+    Residual[0] = 0.0;
+    Residual[1] = 0.0;
+    Jacobian_i[0][0] = 0.0;
+    Jacobian_i[0][1] = 0.0;
+    Jacobian_i[1][0] = 0.0;
+    Jacobian_i[1][1] = 0.0;
+
+    if (dist_i > 1e-10) {
+      /* Ampification Factor term */
+      const su2double sos = V_i[idx.SoundSpeed()];
+      const su2double rho_inf = config->GetDensity_FreeStream();
+      const su2double p_inf = config->GetPressure_FreeStream();
+      const su2double velU_inf = config->GetVelocity_FreeStream()[0];
+      const su2double velV_inf = config->GetVelocity_FreeStream()[1];
+      const su2double velW_inf = (nDim ==3) ? config->GetVelocity_FreeStream()[2] : 0.0;
+      const su2double velMag_inf = pow(velU_inf*velU_inf + velV_inf * velV_inf + velW_inf *velW_inf,0.5) ;
+      const su2double gamma_Spec = config->GetGamma();
+      const su2double p = V_i[idx.Pressure()];
+      const su2double sos_inf = pow(config->GetTemperature_FreeStream() * config->GetGas_Constant() * gamma_Spec,0.5);
+      const su2double temperautre_local = V_i[idx.Temperature()];
+      const su2double Twall = 300.0;
+      const su2double M_inf = velMag_inf / sos_inf;
+      const su2double T0 = config->GetTemperature_FreeStream() * (1+ (gamma_Spec - 1.0) / 2.0 * M_inf * M_inf );
+      const su2double cordix = Coord_i[0], cordiy = Coord_i[1];
+
+      su2double DHk = 0.0, lHk = 0.0, mHk = 0.0;
+      su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
+      
+      rho_eL = pow(rho_inf,gamma_Spec) * p / p_inf;
+      rho_eL = pow(rho_eL, 1/gamma_Spec);
+      U_eL = gamma_Spec / ( gamma_Spec - 1.0) * p_inf / rho_inf + 0.5 * velMag_inf * velMag_inf;
+      U_eL -= gamma_Spec / ( gamma_Spec - 1.0) * p / rho_eL;
+      U_eL =pow(U_eL * 2.0, 0.5) ;
+      a_eL = sos_inf * sos_inf /(gamma_Spec - 1.0) + velMag_inf * velMag_inf / 2.0;
+      a_eL -= U_eL * U_eL /2.0;
+      a_eL = pow(a_eL * (gamma_Spec - 1.0), 0.5);
+      M_eL = U_eL / a_eL;
+      T_eL = a_eL * a_eL / gamma_Spec / config->GetGas_Constant();
+      
+      if(nDim == 2) {
+        He = 0.0;
+      }
+      else {
+        su2double VelocityNormalized[3];
+        VelocityNormalized[0] = vel_u / Velocity_Mag;
+        VelocityNormalized[1] = vel_v / Velocity_Mag;
+        if (nDim == 3) VelocityNormalized[2] = vel_w / Velocity_Mag;
+
+        su2double StreamwiseVort = 0.0;
+        for (auto iDim = 0u; iDim < nDim; iDim++) {
+          StreamwiseVort += VelocityNormalized[iDim] * Vorticity_i[iDim];
+        }
+        StreamwiseVort = abs(StreamwiseVort);
+
+        const su2double unitU = V_i[idx.Velocity()]/Velocity_Mag, unitV = V_i[idx.Velocity()+1]/Velocity_Mag, unitW = V_i[idx.Velocity()+2]/Velocity_Mag;
+        const su2double vorticity_x = Vorticity_i[0], vorticity_y = Vorticity_i[1], vorticity_z = Vorticity_i[2];
+        const su2double UVor_x = unitU * vorticity_x, VVor_y = unitV * vorticity_y, WVor_z = unitW * vorticity_z;
+
+        He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
+      }
+
+      su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
+      const su2double HL = StrainMag_i * dist_i / U_eL;
+      const su2double T_over_T0 = temperautre_local / T0;
+      const su2double Tw_over_Te = Twall / T_eL;
+      const su2double H_CF = He * dist_i / Velocity_Mag;
+      const su2double DeltaH_CF = H_CF * (1.0 + min(Eddy_Viscosity_i / Laminar_Viscosity_i, 0.4));
+
+      if(cordix == 1.0 && cordiy < 0.003  ){
+        su2double temp = 0.0;
+      }
+      /*--- Cal H12, Hk, dNdRet, Ret0 ---*/
+      const su2double H12 = TransCorrelations.H12_Correlations(HL, T_over_T0, M_eL, Tw_over_Te);
+      const su2double Hk = TransCorrelations.Hk_Correlations(HL, H12, M_eL);
+      const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL);
+      const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
+      const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
+
+      /*--- Amplification Factor Source term*/
+      DHk =Hk;
+      DHk = DHk / (0.5482 * Hk - 0.5185);
+      lHk = (6.54 * Hk - 14.07) / pow(Hk,2);
+      mHk = (0.058 * pow(Hk - 4.0, 2.0)/(Hk - 1.0) - 0.068);
+      mHk = mHk/lHk;
+
+      const su2double F_growth = DHk * (1.0 + mHk) / 2.0 * lHk;
+      const su2double Rev = Density_i * dist_i * dist_i * StrainMag_i / (Laminar_Viscosity_i + Eddy_Viscosity_i);
+      const su2double Rev0 = RevRet * Ret0; 
+
+      su2double F_crit = 1.0 ;
+      if(Rev < Rev0) {
+        F_crit = 0.0;
+      }
+      
+      const su2double F_onset = 0.0;
+      const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
+
+      
+      /*-- production term of Amplification Factor --*/
+
+      const su2double AFg = Density_i * VorticityMag * F_crit * F_growth * dNdRet * 12.0;
+
+
+      /*-- production term of Intermeittency(Gamma) --*/
+      const su2double Pg = c_1 * Density_i * StrainMag_i * F_onset * (1 - exp(TransVar_i[1]));
+
+      /*-- destruction term of Intermeittency(Gamma) --*/
+      const su2double Dg = c_2 * Density_i * VorticityMag * F_turb * (c_3 * exp(TransVar_i[1]) - 1.0);
+
+      /*--- Source ---*/
+      Residual[0] += (AFg) * Volume;
+      Residual[1] += (Pg - Dg) * Volume;
+
+      /*--- Implicit part ---*/
+      Jacobian_i[0][0] = 0.0;
+      Jacobian_i[0][1] = 0.0;
+      Jacobian_i[1][0] = 0.0;
+      Jacobian_i[1][1] = ( -c_1 * StrainMag_i * F_onset * exp(TransVar_i[1]) -c_2 * VorticityMag * F_turb * c_3 * exp(TransVar_i[1]) ) * Volume;
+    }
+
+    AD::SetPreaccOut(Residual, nVar);
+    AD::EndPreacc();
+
+    return ResidualType<>(Residual, Jacobian_i, nullptr);
+  }
+};
+
+
+/*!
  * \class CIntermittencyVariables
  * \ingroup SourceDiscr
  * \brief Structure with Intermittency common auxiliary functions and constants.

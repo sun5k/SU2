@@ -1735,6 +1735,31 @@ public:
   inline virtual void SetTurbIndex(unsigned long iPoint, su2double val_turb_index) {}
 
   /*!
+   * \brief Get the value of the natural  intermittency.
+   * \return the value of the intermittency.
+   */
+  inline virtual su2double GetLnIntermittency(unsigned long iPoint) const { return 0.0; }
+
+  /*!
+   * \brief Set the intermittency.
+   * \param[in] val_dist - Value of the  intermittency.
+   */
+  inline virtual void SetLnIntermittency(unsigned long iPoint, su2double val_lnIntermittency) {}
+
+  /*!
+   * \brief Get the value of the effective intermittency.
+   * \return the value of the effective intermittency.
+   */
+  inline virtual su2double GetLnIntermittencyEff(unsigned long iPoint) const { return 0.0; }
+
+  /*!
+   * \brief Set the effective intermittency (gamma_eff).
+   * \param[in] Value of the effective intermittency (gamma_eff).
+   */
+  inline virtual void SetLnIntermittencyEff(unsigned long iPoint, su2double val_lnIntermittency_eff) {}
+
+
+  /*!
    * \brief Get the value of the turbulence index.
    * \return val_turb_index - turbulence index
    */
