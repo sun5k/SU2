@@ -284,7 +284,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
 
     su2double U_over_y = 0.0;
     su2double F_crit = 0.0 ;
-    if(Ret >= Ret0 && cordix >= 0.08 && cordiy > 1.0e-10) {
+    if(Ret >= Ret0 && cordiy > 1.0e-10) {
         F_crit = 1.0;
         U_over_y = Velocity_Mag / dist_i;
       }
