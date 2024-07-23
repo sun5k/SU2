@@ -581,30 +581,50 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL);
       const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
       const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
+      const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk);
+      const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk);
 
       /*--- Amplification Factor Source term*/
       DHk =Hk;
       DHk = DHk / (0.5482 * Hk - 0.5185);
       lHk = (6.54 * Hk - 14.07) / pow(Hk,2);
       mHk = (0.058 * pow(Hk - 4.0, 2.0)/(Hk - 1.0) - 0.068);
-      mHk = mHk/lHk;
+      //mHk = mHk/lHk;
+      mHk = mHk / l_H12;
 
-      const su2double F_growth = DHk * (1.0 + mHk) / 2.0 * lHk;
+      const su2double F_growth = max(D_H12 * (1.0 + mHk) / 2.0 * l_H12, 0.0);
       const su2double Rev = Density_i * dist_i * dist_i * StrainMag_i / (Laminar_Viscosity_i + Eddy_Viscosity_i);
       const su2double Rev0 = RevRet * Ret0; 
+      const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
+      const su2double Ret = min(rho_eL * U_eL / mu_eL * dist_i / D_H12, 2.0e+3);
 
-      su2double F_crit = 1.0 ;
-      if(Rev < Rev0) {
-        F_crit = 0.0;
+      su2double U_over_y = 0.0;
+      su2double F_crit = 0.0 ;
+      if(Ret >= Ret0 && cordix >= 0.08 ) {
+        F_crit = 1.0;
+        U_over_y = Velocity_Mag / dist_i;
       }
       
       const su2double F_onset = 0.0;
       const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
 
       
-      /*-- production term of Amplification Factor --*/
+      /*-- production term of Amplification Factor -- Case 1*/
 
-      const su2double AFg = Density_i * VorticityMag * F_crit * F_growth * dNdRet * 12.0;
+      //const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
+      /*-- Test for Production Case 
+      F_crit = 0.0 ;
+      if( cordiy >= 0.005 && cordiy <= 0.01 && cordix >= 0.08 ) {
+        F_crit = 1.0;
+        U_over_y = Velocity_Mag;
+      }*/
+
+      /*-- Test for Production Case1 : y : 0.0025, source : 1.0*/
+      /*-- Test for Production Case2 : y : 0.0025, source : 2.0*/
+      /*-- Test for Production Case3 : y : 0.005, source : 0.5*/
+      /*-- Test for Production Case4 : y : 0.005, source : 1.0*/
+
+      const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
 
       /*-- production term of Intermeittency(Gamma) --*/

@@ -204,10 +204,12 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double Laminar_Viscosity_i = flowNodes->GetLaminarViscosity(iPoint);
     const su2double Density_i = flowNodes->GetDensity(iPoint);
     const su2double Volum_i = geometry->nodes->GetVolume(iPoint);
+    const su2double cordix = geometry->nodes->GetCoord(iPoint,0);
+    const su2double cordiy = geometry->nodes->GetCoord(iPoint,1);
 
     su2double DHk = 0.0, lHk = 0.0, mHk = 0.0;
     su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
-    su2double mu_eL;
+   
     const su2double vel_u = flowNodes->GetVelocity(iPoint, 0);
     const su2double vel_v = flowNodes->GetVelocity(iPoint, 1);
     const su2double vel_w = (nDim == 3) ? flowNodes->GetVelocity(iPoint, 2) : 0.0;
@@ -222,9 +224,8 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     a_eL -= U_eL * U_eL /2.0;
     a_eL = pow(a_eL * (gamma_Spec - 1.0), 0.5);
     M_eL = U_eL / a_eL;
-    T_eL = a_eL * a_eL / gamma_Spec / config->GetGas_Constant();
-    mu_eL = 1.716e-5 * pow(T_eL/273.15,1.5) * (273.15 + 110.4) / (T_eL + 110.4);
-      
+    T_eL = a_eL * a_eL / gamma_Spec / config->GetGas_Constant();    
+    const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
     if(nDim == 2) {
       He = 0.0;
     }
@@ -261,36 +262,62 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL);
     const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
     const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
+    const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk);
+    const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk);
 
-      /*--- Amplification Factor Source term*/
+    /*--- Amplification Factor Source term*/
     DHk =Hk;
     DHk = DHk / (0.5482 * Hk - 0.5185);
     lHk = (6.54 * Hk - 14.07) / pow(Hk,2);
     mHk = (0.058 * pow(Hk - 4.0, 2.0)/(Hk - 1.0) - 0.068);
-    mHk = mHk/lHk;
+    //mHk = mHk/lHk;
+    mHk = mHk / l_H12;
 
-    const su2double F_growth = DHk * (1.0 + mHk) / 2.0 * lHk;
+    const su2double F_growth = max(D_H12 * (1.0 + mHk) / 2.0 * l_H12, 0.0);
     const su2double Rev = Density_i * dist_i * dist_i * StrainMag_i / (Laminar_Viscosity_i + Eddy_Viscosity_i);
     const su2double Rev0 = RevRet * Ret0;
-
-    su2double F_crit = 1.0 ;
-    if(Rev < Rev0) {
-      F_crit = 0.0;
+    su2double Ret = 0.0;
+    if(dist_i != 0){
+        Ret = min(rho_eL * U_eL / mu_eL * dist_i / D_H12, 2.0e+3);
     }
+    
 
+    su2double U_over_y = 0.0;
+    su2double F_crit = 0.0 ;
+    if(Ret >= Ret0 && cordix >= 0.08 && cordiy > 1.0e-10) {
+        F_crit = 1.0;
+        U_over_y = Velocity_Mag / dist_i;
+      }
+    
     nodes -> SetIntermittency(iPoint, lnIntermittency);
     //wonder 1 = HL, wonder 2 = H12, wonder 3 = Hk, wonder 4 = RevRet, wonder 5 = dNdRet, wonder 6 = Ret0;
     //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, Hk, RevRet, dNdRet, Ret0);
     //wonder 1 = HL, wonder 2 = H12, wonder 3 = dNdRet, wonder 4 = Ret0, wonder 5 = F_on, wonder 6 = F_growth;
-    nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, dNdRet, Ret0, F_crit, F_growth);
-    
-    const su2double AFg = Density_i * StrainMag_i * F_crit * F_growth * dNdRet;
+    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, dNdRet, Ret0, F_crit, F_growth);
+    /*
+    F_crit = 0.0 ;
+      if( cordiy >= 0.005 && cordiy <= 0.01 && cordix >= 0.08 ) {
+        F_crit = 1.0;
+        U_over_y = Velocity_Mag;
+      }*/
+
+      /*-- Test for Production Case1 : y : 0.0025, source : 1.0*/
+      /*-- Test for Production Case2 : y : 0.0025, source : 2.0*/
+      /*-- Test for Production Case3 : y : 0.005, source : 0.5*/
+      /*-- Test for Production Case4 : y : 0.005, source : 1.0*/
+
+    //su2double AFg = Density_i * U_over_y * F_crit * 1.0;
+    const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
     const su2double AFgVol = AFg * Volum_i;
     //wonder 1 = HL, wonder 2 = H12, wonder 3 = dNdRet, wonder 4 = Ret0, wonder 5 = Prod, wonder 6 = Prod * vol;
     //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, dNdRet, Ret0, AFg, AFgVol);
     //wonder 1 = Rev, wonder 2 = RevRet, wonder 3 = mu_eL, wonder 4 = rho_eL, wonder 5 = U_eL, wonder 6 = MomThickness;
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
     //nodes -> SetIntermittency_Wonder_Func(iPoint, Rev, RevRet, mu_eL, rho_eL, U_eL, MomThickness);
+    //wonder 1 = H12, wonder 2 = Hk, wonder 3 = D_H12, wonder 4 = DHk, wonder 5 = AFg, wonder 6 = AFgVol;
+    nodes -> SetIntermittency_Wonder_Func(iPoint, U_over_y, F_crit, F_growth, dNdRet, AFg, AFgVol);
+    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, RevRet, dNdRet, Ret0, F_crit, F_growth);
+    //nodes -> SetIntermittency_Wonder_Func(iPoint, StrainMag_i, RevRet, dNdRet, Ret0, F_crit, F_growth);
 
   }
   END_SU2_OMP_FOR

@@ -298,7 +298,7 @@ class TransAFMTCorrelations {
       cout << "NaN is tected." << endl;
     }
     */
-    Hk = min(max(2.2, Hk), 4.0);    
+    Hk = min(max(0.0, Hk), 4.0);    
     return Hk;
   }
 
@@ -324,9 +324,9 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
-        a1 = 0.0008 * pow(M_e,2) + 0.0932 * M_e + 0.1109;
-        a2 = -0.0356 * pow(M_e,2) - 0.1249 * M_e + 0.9068;
-        a3 = 0.0924 * pow(M_e,2) - 0.7116 * M_e + 2.3833;
+        a1 = 0.0008 * pow(M_e,2) + 0.091 * M_e + 0.1253;
+        a2 = -0.0343 * pow(M_e,2) - 0.1322 * M_e + 0.8943;
+        a3 = 0.0887 * pow(M_e,2) - 0.6799 * M_e + 2.3288;
 
         RevRet = a1 * pow(log(H12),2) + a2 * log(H12) + a3;
         break;
@@ -383,7 +383,7 @@ class TransAFMTCorrelations {
         a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e + 1.115e-1;
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
 
-        dNdRet = min(dNdRet, 0.006);
+        dNdRet = min(dNdRet, 0.02);
         break;
       }
 
@@ -433,6 +433,14 @@ class TransAFMTCorrelations {
         a2 = -1.423e-3 * pow(M_e,3) + 2.791e-2 * pow(M_e,2) - 1.610e-1 * M_e - 3.092;
         Ret0 = a1 * pow(Hk,a2) + 2.0;
         Ret0 = pow(10,Ret0);
+
+        //log(Ret0) sok_Modified
+        a1 = 1.982 * exp(-0.002983 * M_e) + -1.406 * exp(-0.3563 * M_e);
+        a2 = -2.481 * exp(-0.001117 * M_e) + 6.952 * exp(-0.375 * M_e);
+        a3 = 2.3e-05 * pow(M_e, 4) - 0.001363 * pow(M_e, 3) + 0.02384 * pow(M_e, 2) - 0.1763 * pow(M_e, 1) - 0.93;
+        Ret0 = (a1 * Hk + a2) / (Hk + a3);
+        //Ret0
+        Ret0 = pow(10, Ret0);
         break;
       }
 
@@ -451,6 +459,81 @@ class TransAFMTCorrelations {
 
 
 
+
+  /*!
+   * \brief Compute D_H12_y/theta from correlations.
+   * \param[in] H12 - Integreated Shape Factor.   
+   * \param[in] M_e - Edge Mach number.
+   * \param[out] dNdRet - N factor gradient for Mack 2nd mode.
+   */
+  su2double D_H12_Correlations(const su2double H12, const su2double Hk) const {
+    su2double D_H12 = 0.0;
+    su2double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0, a6 = 0.0, a7 =0.0;
+
+    switch (options.Correlation) {
+      case AFMT_CORRELATION::Liu2023: {
+        a1 = 9.1610e-4;
+        a2 = -2.9340e-3;
+        a3 = 1.6520;
+        a4 = 8.9230e-1;
+        a5 = -6.6490;
+        a6 = -3.6160e-1;
+        a7 = 1.3950e+1; 
+        D_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
+        break;
+      }
+
+      case AFMT_CORRELATION::sok: {
+        D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
+        break;
+      }
+
+      case AFMT_CORRELATION::DEFAULT:
+        SU2_MPI::Error("Transition correlation is set to DEFAULT but no default value has ben set in the code.",
+                       CURRENT_FUNCTION);
+        break;
+    }
+    D_H12 = min(40.0, max(1.0, D_H12));
+    return D_H12;
+  }
+
+
+  /*!
+   * \brief Compute l_H12_y/theta from correlations.
+   * \param[in] H12 - Integreated Shape Factor.   
+   * \param[in] Hk - Edge Mach number.
+   * \param[out] l(H12,Hk) - l function.
+   */
+  su2double l_H12_Correlations(const su2double H12, const su2double Hk) const {
+  su2double l_H12 = 0.0;
+  su2double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0, a6 = 0.0, a7 =0.0;
+
+    switch (options.Correlation) {
+      case AFMT_CORRELATION::Liu2023: {
+        a1 = 9.1610e-4;
+        a2 = -2.9340e-3;
+        a3 = 1.6520;
+        a4 = 8.9230e-1;
+        a5 = -6.6490;
+        a6 = -3.6160e-1;
+        a7 = 1.3950e+1; 
+        l_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
+        break;
+      }
+
+      case AFMT_CORRELATION::sok: {
+        l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
+        break;
+      }
+
+      case AFMT_CORRELATION::DEFAULT:
+        SU2_MPI::Error("Transition correlation is set to DEFAULT but no default value has ben set in the code.",
+                       CURRENT_FUNCTION);
+        break;
+    }
+    l_H12 = min(0.6, max(0.1, l_H12));
+    return l_H12;
+  }
 
 
 
