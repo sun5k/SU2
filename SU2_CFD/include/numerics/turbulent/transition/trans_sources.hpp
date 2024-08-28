@@ -610,21 +610,10 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
 
       
       /*-- production term of Amplification Factor -- Case 1*/
-
-      //const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
-      /*-- Test for Production Case 
-      F_crit = 0.0 ;
-      if( cordiy >= 0.005 && cordiy <= 0.01 && cordix >= 0.08 ) {
-        F_crit = 1.0;
-        U_over_y = Velocity_Mag;
-      }*/
-
-      /*-- Test for Production Case1 : y : 0.0025, source : 1.0*/
-      /*-- Test for Production Case2 : y : 0.0025, source : 2.0*/
-      /*-- Test for Production Case3 : y : 0.005, source : 0.5*/
-      /*-- Test for Production Case4 : y : 0.005, source : 1.0*/
-
       const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
+
+      /*-- production term of Amplification Factor -- Case 3*/
+      //const su2double AFg = Density_i * StrainMag_i * F_crit * F_growth * dNdRet;
 
 
       /*-- production term of Intermeittency(Gamma) --*/

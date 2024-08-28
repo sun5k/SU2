@@ -230,7 +230,10 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
-        H12 = 2.816 * Tw_over_Te + 0.1189 * HL + 0.1810 * M_e * M_e - 0.2772;
+        //H12 = 2.816 * Tw_over_Te + 0.1189 * HL + 0.1810 * M_e * M_e - 0.2772;
+        H12 = (9.2706e+1 * pow(T_over_T0,2) + 1.2516e+1 * T_over_T0 * M_e - 2.4463e+2 * T_over_T0 - 1.6690e+1 * M_e + 2.0717e+2) * T_over_T0;
+        H12 = H12 + 1.7872 * pow(M_e,2) + 5.4920 * M_e - 5.3168e+1;
+        H12 = H12 * HL * T_over_T0;
         break;
       }
 
@@ -271,11 +274,17 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
+        /*
         a1 = 4.957e-3 * pow(M_e,3) - 6.297e-2 * pow(M_e,2) -5.984e-2 * M_e - 2.334;
         a2 = -7.960e-3 * pow(M_e,3) + 1.095e-1 * pow(M_e,2) + 2.831e-3 * M_e + 5.209;
         a3 = 3.327e-3 * pow(M_e,3) - 4.705e-2 * pow(M_e,2) + 1.867e-2 * M_e + 4.361e-1;
         Hk = a1 * pow(HL,2) + a2 * HL + a3;
-
+        */
+        a1 = 2.642158e-5 * pow(M_e,5) - 1.047983e-3 * pow(M_e,4) + 1.688650e-2 * pow(M_e,3) - 1.392065e-1 * pow(M_e,2) + 5.936119e-1 * M_e - 1.065709;
+        a2 = 1.140608e-4 * pow(M_e,4) - 9.542641e-3 * pow(M_e,3) + 2.129670e-1 * pow(M_e,2) - 1.968956 * M_e + 7.184406;
+        a3 = 4.129277e-3 * pow(M_e,4) - 1.256703e-1 * pow(M_e,3) + 1.403225 * pow(M_e,2) - 6.410845 * M_e + 1.309789e+1;
+        Hk = a1 * pow(H12,2) + a2 * H12 + a3;
+        Hk = log(Hk);
         break;
       }
 
@@ -367,6 +376,7 @@ class TransAFMTCorrelations {
         a3 = 2.958e-5 *  pow(M_e,2) - 1.277e-3 * M_e + 1.164e-2;
         a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e - 1.115e-1;
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
+        dNdRet = min(dNdRet, 0.02);
         break;
       }
 
@@ -377,11 +387,10 @@ class TransAFMTCorrelations {
         a3 = 0.0;
         dNdRet = a1 * pow(H12,2) + a2 * H12 + a3;
         */
-        a1 = -3.030e-3 * pow(M_e,2) - 3.827e-2 * M_e + 7.520e-1;
-        a2 = -1.255e-3 * pow(M_e,2) + 1.581e-1 * M_e - 1.605;
-        a3 = 2.958e-5 *  pow(M_e,2) - 1.277e-3 * M_e + 1.164e-2;
-        a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e + 1.115e-1;
-        dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
+        a1 = - 5.2186e-7 * pow(M_e,3) + 1.1325e-5 * pow(M_e,2) - 8.2659e-5 * M_e + 2.0309e-4;
+        a2 = + 1.5148e-5 * pow(M_e,3) - 3.5602e-4 * pow(M_e,2) + 2.8322e-3 * M_e - 7.6569e-3;
+        a3 = + 3.1036e-4 * pow(M_e,2) - 5.6516e-3 * M_e + 2.9353e-2;        
+        dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
 
         dNdRet = min(dNdRet, 0.02);
         break;
@@ -422,24 +431,12 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
-        /*
-        a1 = 0.0;
-        a2 = 0.0;
-        a3 = 0.0;
-        a4 = 0.0;
-        Ret0 = a1 * pow(H12,3) + a2 * pow(H12,2) + a3 * H12 + a4;
-        */
-        a1 = 2.704e-1 *  pow(M_e,2) - 5.310 * M_e + 32.16;
-        a2 = -1.423e-3 * pow(M_e,3) + 2.791e-2 * pow(M_e,2) - 1.610e-1 * M_e - 3.092;
-        Ret0 = a1 * pow(Hk,a2) + 2.0;
-        Ret0 = pow(10,Ret0);
+        a1 = - 6.6660e-04 * pow(M_e,3) + 1.4219e-02 * pow(M_e,2) - 1.0373e-01 * M_e + 2.6474e-01;
+        a2 = + 1.2615e-01 * pow(M_e,3) + 2.7246e-01 * pow(M_e,2) - 1.9261 * M_e + 6.3073;
+        a3 = + 1.2615e-01 * pow(M_e,3) - 2.5264 * pow(M_e,2) + 1.7195e+01 * M_e - 3.9883e+01;
 
-        //log(Ret0) sok_Modified
-        a1 = 1.982 * exp(-0.002983 * M_e) + -1.406 * exp(-0.3563 * M_e);
-        a2 = -2.481 * exp(-0.001117 * M_e) + 6.952 * exp(-0.375 * M_e);
-        a3 = 2.3e-05 * pow(M_e, 4) - 0.001363 * pow(M_e, 3) + 0.02384 * pow(M_e, 2) - 0.1763 * pow(M_e, 1) - 0.93;
-        Ret0 = (a1 * Hk + a2) / (Hk + a3);
-        //Ret0
+        Ret0 = (a1 * pow(H12,2) + a2 * H12 + a3) / (H12 - 1.5);
+        Ret0 = min(Ret0,5.0);
         Ret0 = pow(10, Ret0);
         break;
       }
@@ -472,7 +469,7 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
-        a1 = 9.1610e-4;
+        /*a1 = 9.1610e-4;
         a2 = -2.9340e-3;
         a3 = 1.6520;
         a4 = 8.9230e-1;
@@ -480,6 +477,8 @@ class TransAFMTCorrelations {
         a6 = -3.6160e-1;
         a7 = 1.3950e+1; 
         D_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
+        */
+        D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
         break;
       }
 
@@ -510,6 +509,7 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
+        /*
         a1 = 9.1610e-4;
         a2 = -2.9340e-3;
         a3 = 1.6520;
@@ -518,6 +518,8 @@ class TransAFMTCorrelations {
         a6 = -3.6160e-1;
         a7 = 1.3950e+1; 
         l_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
+        */
+        l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
         break;
       }
 
