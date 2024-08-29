@@ -307,7 +307,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
     //nodes -> SetIntermittency_Wonder_Func(iPoint, Rev, RevRet, mu_eL, rho_eL, U_eL, MomThickness);
     //wonder 1 = H12, wonder 2 = Hk, wonder 3 = D_H12, wonder 4 = DHk, wonder 5 = AFg, wonder 6 = AFgVol;
-    nodes -> SetIntermittency_Wonder_Func(iPoint, Ret0, F_crit, H12, dNdRet, Ret, AFg);
+    nodes -> SetIntermittency_Wonder_Func(iPoint, Ret0, F_crit, H12, dNdRet, M_eL, AFg);
     //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, RevRet, dNdRet, Ret0, F_crit, F_growth);
     //nodes -> SetIntermittency_Wonder_Func(iPoint, StrainMag_i, RevRet, dNdRet, Ret0, F_crit, F_growth);
 

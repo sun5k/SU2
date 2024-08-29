@@ -374,7 +374,7 @@ class TransAFMTCorrelations {
         a1 = -3.030e-3 * pow(M_e,2) - 3.827e-2 * M_e + 7.520e-1;
         a2 = -1.255e-3 * pow(M_e,2) + 1.581e-1 * M_e - 1.605;
         a3 = 2.958e-5 *  pow(M_e,2) - 1.277e-3 * M_e + 1.164e-2;
-        a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e - 1.115e-1;
+        a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e + 1.115e-1;
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
         dNdRet = min(dNdRet, 0.02);
         break;
