@@ -3178,6 +3178,12 @@ public:
   inline virtual su2double GetAF_Inf() const { return 0; }
 
   /*!
+   * \brief Get value of the critical N-factor.
+   * \return Value of the critical N-factor.
+   */
+  inline virtual su2double N_Critical() const { return 0; }
+
+  /*!
    * \brief A virtual member.
    * \return Value of the sensitivity coefficient for the Young Modulus E
    */

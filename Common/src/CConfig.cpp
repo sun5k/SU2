@@ -1382,6 +1382,8 @@ void CConfig::SetConfig_Options() {
   /* DESCRIPTION:  */
   addDoubleOption("FREESTREAM_INTERMITTENCY", Intermittency_FreeStream, 1.0);
   /* DESCRIPTION:  */
+  addDoubleOption("N_CRITICAL", N_Critcal, 11.0);
+  /* DESCRIPTION:  */
   addDoubleOption("FREESTREAM_TURBULENCEINTENSITY", TurbIntensityAndViscRatioFreeStream[0], 0.05);
   /* DESCRIPTION:  */
   addDoubleOption("FREESTREAM_NU_FACTOR", NuFactor_FreeStream, 3.0);

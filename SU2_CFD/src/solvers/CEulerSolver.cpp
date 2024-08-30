@@ -1337,6 +1337,10 @@ void CEulerSolver::SetNondimensionalization(CConfig *config, unsigned short iMes
           NonDimTable << "Moment. Thick. Re"  << "-" << "-" << "-" << config->GetReThetaT_FreeStream();
           Unit.str("");
         }
+        if (config-> GetKind_Trans_Model() == TURB_TRANS_MODEL::AFMT) {
+          NonDimTable << "Critical N-Factor"  << "-" << "-" << "-" << config->GetN_Critical();
+          Unit.str("");
+        }
       }
       if (config->GetKind_Species_Model() != SPECIES_MODEL::NONE) {
         if      (config->GetSystemMeasurements() == SI) Unit << "m^2/s";

@@ -754,7 +754,7 @@ class CSourcePieceWise_TurbSST final : public CNumerics {
     if (config->GetKind_Trans_Model() == TURB_TRANS_MODEL::AFMT) {
       AD::SetPreaccIn(intermittency_i);
       eff_intermittency = exp(intermittency_i);
-      eff_intermittency = 0.0;
+      //eff_intermittency = 0.0;
     }
 
     if (config->GetINTERMITTENCYParsedOptions().Intermit_model == INTERMITTENCY_MODEL::LIU2022) {

@@ -220,7 +220,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
       su2double a2 = 1.667e-4 * Ma_eL * Ma_eL * Ma_eL - 2.171e-3 * Ma_eL * Ma_eL - 2.937e-2 * Ma_eL - 0.5902;
       su2double a3 = -8.928e-4 * Ma_eL * Ma_eL * Ma_eL + 2.041e-2 * Ma_eL * Ma_eL + 9.166e-2 * Ma_eL + 0.4975;
 
-      su2double F_ratio = a1 * pow(Ma_eL,a2) + a3;
+      su2double F_ratio = a1 * pow(T_eL/Twall,a2) + a3;
 
       su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
 
@@ -497,6 +497,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
     const su2double vel_w = (nDim == 3) ? V_i[2 + idx.Velocity()] : 0.0;
 
     const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
+    const su2double Critical_N_Factor = config->GetN_Critical();    
 
     AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
 
@@ -565,14 +566,14 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
         He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
       }
 
-      su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
+      su2double C_cf = 28.0;
       const su2double HL = StrainMag_i * dist_i / U_eL;
       const su2double T_over_T0 = temperautre_local / T0;
       const su2double Tw_over_Te = Twall / T_eL;
       const su2double H_CF = He * dist_i / Velocity_Mag;
       const su2double DeltaH_CF = H_CF * (1.0 + min(Eddy_Viscosity_i / Laminar_Viscosity_i, 0.4));
 
-      if(cordix == 1.0 && cordiy < 0.003  ){
+      if(Critical_N_Factor < TransVar_i[0]){
         su2double temp = 0.0;
       }
       /*--- Cal H12, Hk, dNdRet, Ret0 ---*/
@@ -604,16 +605,28 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
         F_crit = 1.0;
         U_over_y = Velocity_Mag / dist_i;
       }
-      
-      const su2double F_onset = 0.0;
+
+      su2double F_Tu = config -> GetTurbulenceIntensity_FreeStream();
+      if(F_Tu < 0.001){
+        C_cf = 45.0;
+      }
+
+      const su2double R_T = Density_i * ScalarVar_i[0] / Laminar_Viscosity_i / ScalarVar_i[1];
+      const su2double F_onset_Secondmode = min(TransVar_i[0]/Critical_N_Factor, 2.0);
+      const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
+      const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow );
+      const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
+      const su2double F_onset3 = max(1.0 - pow(R_T, 3), 0.0);
+
+      const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
       const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
 
       
       /*-- production term of Amplification Factor -- Case 1*/
-      const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
+      const su2double PAF = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
       /*-- production term of Amplification Factor -- Case 3*/
-      //const su2double AFg = Density_i * StrainMag_i * F_crit * F_growth * dNdRet;
+      //const su2double PAF = Density_i * StrainMag_i * F_crit * F_growth * dNdRet;
 
 
       /*-- production term of Intermeittency(Gamma) --*/
@@ -623,8 +636,8 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double Dg = c_2 * Density_i * VorticityMag * F_turb * (c_3 * exp(TransVar_i[1]) - 1.0);
 
       /*--- Source ---*/
-      Residual[0] += (AFg) * Volume;
-      Residual[1] += (Pg - Dg) * Volume;
+      Residual[0] += (PAF) * Volume;
+      Residual[1] += (Pg - Dg) * Volume; 
 
       /*--- Implicit part ---*/
       Jacobian_i[0][0] = 0.0;

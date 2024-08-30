@@ -1758,6 +1758,18 @@ public:
    */
   inline virtual void SetLnIntermittencyEff(unsigned long iPoint, su2double val_lnIntermittency_eff) {}
 
+  /*!
+   * \brief Get the value of the critical N-factor.
+   * \return the value of the critical N-factor.
+   */
+  inline virtual su2double GetNCricial(unsigned long iPoint) const { return 0.0; }
+
+  /*!
+   * \brief Set the critical N-factor..
+   * \param[in] val_dist - Value of the critical N-factor..
+   */
+  inline virtual void SetNCricial(unsigned long iPoint, su2double val_NCritical) {}
+
 
   /*!
    * \brief Get the value of the turbulence index.

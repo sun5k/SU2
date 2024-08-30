@@ -868,6 +868,7 @@ private:
   Tke_FreeStream,                  /*!< \brief Total turbulent kinetic energy of the fluid.  */
   Intermittency_FreeStream,        /*!< \brief Freestream intermittency (for sagt transition model) of the fluid.  */
   ReThetaT_FreeStream,             /*!< \brief Freestream Transition Momentum Thickness Reynolds Number (for LM transition model) of the fluid.  */
+  N_Critcal,                       /*!< \brief Critical N-factor (for AFMT model).  */
   NuFactor_FreeStream,             /*!< \brief Ratio of turbulent to laminar viscosity. */
   NuFactor_Engine,                 /*!< \brief Ratio of turbulent to laminar viscosity at the engine. */
   SecondaryFlow_ActDisk,           /*!< \brief Ratio of turbulent to laminar viscosity at the actuator disk. */
@@ -1962,6 +1963,12 @@ public:
    * \return Freestream momentum thickness Reynolds number.
    */
   su2double GetReThetaT_FreeStream() const { return ReThetaT_FreeStream; }
+
+  /*!
+   * \brief Get the value of the critical N-factor.
+   * \return The critical N-factor.
+   */
+  su2double GetN_Critical(void) const { return N_Critcal; }
 
   /*!
    * \brief Get the value of the non-dimensionalized freestream turbulence intensity.
