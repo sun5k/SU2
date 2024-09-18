@@ -616,7 +616,8 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
       const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow );
       const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
-      const su2double F_onset3 = max(1.0 - pow(R_T, 3), 0.0);
+      //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
+      const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
 
       const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
       const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
