@@ -437,9 +437,17 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
+        /*
+        //ver1
         a1 = - 6.6660e-04 * pow(M_e,3) + 1.4219e-02 * pow(M_e,2) - 1.0373e-01 * M_e + 2.6474e-01;
         a2 = - 1.2833e-02 * pow(M_e,3) + 2.7246e-01 * pow(M_e,2) - 1.9261 * M_e + 6.3073;
         a3 = + 1.2615e-01 * pow(M_e,3) - 2.5264 * pow(M_e,2) + 1.7195e+01 * M_e - 3.9883e+01;
+        */
+
+        //ver2
+        a1 = + 4498 * pow(M_e, - 7.966) + 0.007729;
+        a2 = + 0.03268 * pow(M_e, 3) - 0.645 * pow(M_e, 2) + 4.071 * pow(M_e, 1) - 6.372;
+        a3 = + 0.01727 * pow(M_e, 4) - 0.593 * pow(M_e, 3) + 7.099 * pow(M_e, 2) - 34.87 * M_e + 59.2;
 
         Ret0 = (a1 * pow(H12,2) + a2 * H12 + a3) / (H12 - 1.5);
         Ret0 = max(1.9, min(Ret0,5.0));
