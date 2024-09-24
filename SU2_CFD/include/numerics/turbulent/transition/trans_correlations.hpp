@@ -393,9 +393,16 @@ class TransAFMTCorrelations {
         a3 = + 3.1036e-4 * pow(M_e,2) - 5.6516e-3 * M_e + 2.9353e-2;
         */
         // ver_2
+        /*
         a1 = 0.007406 * exp(-1.331 * M_e);
         a2 = -0.05271 * exp(-0.9117 * M_e);
         a3 = 0.03892 * exp(-0.2769 * M_e);
+        */
+        // ver2_3 custom
+        a1 = 1.2393e-04 * exp(-4.4071e-01 * M_e);
+        a2 = -4.3843e-03 * exp(-3.4754e-01 * M_e);
+        a3 = -3.4257e-04 * pow(M_e,2) +3.4118e-03 * M_e + 3.2536e-03;
+
         dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
 
         dNdRet = min(dNdRet, 0.02);
@@ -445,9 +452,17 @@ class TransAFMTCorrelations {
         */
 
         //ver2
+        /*
         a1 = + 4498 * pow(M_e, - 7.966) + 0.007729;
         a2 = + 0.03268 * pow(M_e, 3) - 0.645 * pow(M_e, 2) + 4.071 * pow(M_e, 1) - 6.372;
         a3 = + 0.01727 * pow(M_e, 4) - 0.593 * pow(M_e, 3) + 7.099 * pow(M_e, 2) - 34.87 * M_e + 59.2;
+        */
+
+        //ver2.3 custom
+        a1 = + 1.0320e-02 * pow(M_e,2) - 1.3351e-01 * M_e + 4.3280e-01;
+        a2 = - 2.2190e-01 * pow(M_e,2) + 2.6323 * M_e - 5.6543;
+        a3 = + 1.2667 * pow(M_e,2) - 1.4497e+01 * M_e + 3.8812e+01;
+
 
         Ret0 = (a1 * pow(H12,2) + a2 * H12 + a3) / (H12 - 1.5);
         Ret0 = max(1.9, min(Ret0,5.0));
