@@ -399,11 +399,29 @@ class TransAFMTCorrelations {
         a3 = 0.03892 * exp(-0.2769 * M_e);
         */
         // ver2_3 custom
+        /*
         a1 = 1.2393e-04 * exp(-4.4071e-01 * M_e);
         a2 = -4.3843e-03 * exp(-3.4754e-01 * M_e);
         a3 = -3.4257e-04 * pow(M_e,2) +3.4118e-03 * M_e + 3.2536e-03;
-
         dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
+        */
+       //ver2_4 custom2
+        a1 =(0.005211*pow(M_e, 2)-0.0495*pow(M_e,1)+0.1172)/(pow(M_e,2)-10.77*pow(M_e,1)+29.7); 
+        a2 = -0.3235*pow(M_e,2)+2.634*pow(M_e,1)-4.992;
+        if(M_e > 5.5 ){
+          a2 = 0.00639*pow(M_e,4)-0.08947*pow(M_e,3)-0.02045*pow(M_e,2)+4.613*pow(M_e,1)-16.01;
+        }
+         
+        a3 = -0.002592*pow(M_e,3)+0.05448*pow(M_e,2)-0.3797*pow(M_e,1)+0.8783;
+        a4 = -0.04386*pow(M_e,4)+0.9824*pow(M_e,3)-8.222*pow(M_e,2)+30.61*pow(M_e,1)-43.02;
+        if(M_e > 6.5){
+          a4 = 0.195*pow(M_e,3)-4.201*pow(M_e,2)+30.05*pow(M_e,1)-71.37;
+        }
+
+
+
+        dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
+        
 
         dNdRet = min(dNdRet, 0.02);
         break;
