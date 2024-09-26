@@ -406,6 +406,7 @@ class TransAFMTCorrelations {
         dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
         */
        //ver2_4 custom2
+       /*
         a1 =(0.005211*pow(M_e, 2)-0.0495*pow(M_e,1)+0.1172)/(pow(M_e,2)-10.77*pow(M_e,1)+29.7); 
         a2 = -0.3235*pow(M_e,2)+2.634*pow(M_e,1)-4.992;
         if(M_e > 5.5 ){
@@ -417,11 +418,25 @@ class TransAFMTCorrelations {
         if(M_e > 6.5){
           a4 = 0.195*pow(M_e,3)-4.201*pow(M_e,2)+30.05*pow(M_e,1)-71.37;
         }
-
-
-
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
-        
+        */
+        a1 = -0.000128 * pow(M_e,3)+0.002182 *pow(M_e,2)-0.012479*pow(M_e,1)+ 0.024005;
+        a2 = 0.0038133 * pow(M_e,3)- 0.064 *pow(M_e,2)+ 0.36213*pow(M_e,1)- 0.69354;
+        a3 = -0.0026667 * pow(M_e,3) + 0.052 *pow(M_e,2)- 0.34333*pow(M_e,1)+0.84;
+        a4 = -3.6 *pow(M_e, 3) + 55.6 *pow(M_e, 2)- 278.1*pow(M_e,1)+453.0;
+        if(M_e > 6.0) {
+          a1 = 0.0000026667 * pow(M_e,4) - 0.000073333 * pow(M_e,3) + 0.00074533 * pow(M_e,2) - 0.0033227 * pow(M_e,1) + 0.005523;
+          a2 = 0.0008 * pow(M_e, 4) - 0.021733*pow(M_e,3) + 0.2184*pow(M_e,2) - 0.96277*pow(M_e,1) + 1.5707;
+          a3 = 0.022667 * pow(M_e,4) - 0.584*pow(M_e,3) + 5.6203*pow(M_e,2) - 23.919*pow(M_e,1) + 38.026;
+          a4 = 2.8667 *pow(M_e, 4) - 77.8*pow(M_e, 3) + 790.98*pow(M_e, 2) - 3568.9*pow(M_e, 1) + 6036.0;
+        }
+
+        if(pow(H12,2) == - a4){
+          dNdRet = 0.0;
+        }
+        else {
+          dNdRet = (a1 * pow(H12,2) + a2 * pow(H12,1) + a3) / ( pow(H12,2) + a4 );
+        }
 
         dNdRet = min(dNdRet, 0.02);
         break;
