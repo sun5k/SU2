@@ -471,13 +471,22 @@ class TransAFMTCorrelations {
         dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
         */
         //ver 3.1
+        /*
         a1 = 1.6251E-02 * exp(-1.1152E+00 * M_e) + 4.1051E-06 * exp(-1.0866E-02 * M_e) ;
         a2 = -2.5929E-04 * pow(M_e,2) + 4.0741E-03*pow(M_e,1) -1.6397E-02;
         a3 = 4.0055E-04 * pow(M_e,3) -7.2034E-03 *pow(M_e,2)+3.7555E-02*pow(M_e,1)-3.3531E-02;
-
-
-
         dNdRet = a1 * pow(H12, 2) + a2 * pow(H12, 1) + a3;
+        */
+        //ver 3.2
+        a1 = 4.1481E-03* pow(M_e,3) - 6.6463E-02* pow(M_e,2) + 3.2469E-01* pow(M_e,1) - 4.3057E-01;
+        a2 = -3.5286E-02* pow(M_e,3) + 5.5082E-01* pow(M_e,2) - 2.7029E+00* pow(M_e,1) + 3.8855E+00;
+        a3 = 0.0;
+        if(M_e >6.0){
+          a3 = -1.9143E-03* pow(M_e,2) + 2.8340E-02* pow(M_e,1) - 1.0118E-01;
+        }
+        dNdRet = a1 * exp(a2 * H12) + a3 ;
+
+
         dNdRet = max(dNdRet, 0.00000000001);
         dNdRet = min(dNdRet, 0.02);
         break;
