@@ -245,8 +245,8 @@ class TransAFMTCorrelations {
         H12 = H12 - 1.7524e+1;
         H12 = H12 * HL * T_over_T0;
         */
-        H12 = (9.2706e+1 * pow(T_over_T0,2) + 1.2516e+1 * T_over_T0 * M_e - 2.4463e+2 * T_over_T0 - 1.6690e+1 * M_e + 2.0717e+2) * T_over_T0;
-        H12 = H12 + 1.7872 * pow(M_e,2) + 5.4920 * M_e - 5.3168e+1;
+        H12 = (1.0696e+1 * pow(T_over_T0,2) + 1.4386e+1 * T_over_T0 * M_e - 2.7767e+2 * T_over_T0 - 1.8548e+1 * M_e + 2.2921e+2) * T_over_T0;
+        H12 = H12 + 1.7856 * pow(M_e,2) + 5.9571 * M_e - 5.7666e+1;
         H12 = H12 * HL * T_over_T0;
         break;
       }
@@ -493,7 +493,7 @@ class TransAFMTCorrelations {
           a1 = -9.703704E-03 * pow(M_e,3) +1.998571E-01* pow(M_e,2) -1.374931E+00* pow(M_e,1) + 3.180857E+00;
         }
 
-        a2 = -9.603730E-03 * pow(M_e,4) +2.013313E-01* pow(M_e,3) -1.597797E+00* pow(M_e,2) + 5.974929E+00* pow(M_e,2) -9.764600E+00;
+        a2 = -9.603730E-03 * pow(M_e,4) +2.013313E-01* pow(M_e,3) -1.597797E+00* pow(M_e,2) + 5.974929E+00* pow(M_e,1) -9.764600E+00;
 
         a3 = 6.049036E-03 * pow(M_e,3) -5.273554E-02* pow(M_e,2) + 6.116542E-02* pow(M_e,1) + 2.744318E-01;
         if(M_e >= 5.5){
