@@ -531,11 +531,11 @@ class TransAFMTCorrelations {
         }
 
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
-
-
+        //ver3.4.1
+        su2double mindNdRet = -0.0003397773*pow(M_e,3) + 0.007076021*pow(M_e,2)- 0.05221073*pow(M_e,1) + 0.14173;
 
         dNdRet = max(dNdRet, 0.00000000001);
-        dNdRet = min(dNdRet, 0.02);
+        dNdRet = min(dNdRet, mindNdRet);
         break;
       }
 
