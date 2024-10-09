@@ -562,6 +562,7 @@ class TransAFMTCorrelations {
         //ver3.4.2        
         su2double mindNdRet = 2.210826E-04*  pow(M_e,3) - 1.966442E-03*  pow(M_e,2) - 4.500020E-03*  pow(M_e,1) + 5.940342E-02;
         */
+       /*
        //ver 3.5
        a1 = -9.706717E-02 * pow(M_e,3 ) + 1.230110E+00 * pow(M_e,2 ) - 5.015305E+00 * pow(M_e,1 ) + 6.704398E+00;
         if(M_e >= 5.5){
@@ -586,6 +587,30 @@ class TransAFMTCorrelations {
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
         //ver3.5
         su2double mindNdRet = -2.073432E-04 * pow(M_e,3 ) + 4.838661E-03 * pow(M_e,2 ) - 3.988938E-02 * pow(M_e,1 ) + 1.196428E-01;
+        */
+       //ver 3.6
+        a1 = 1.333333E-02 * pow(M_e, 3) - 3.400000E-01 * pow(M_e, 2) + 2.426667E+00 * pow(M_e, 1) - 5.070000E+00;
+        if(M_e >= 5.5){
+          a1 = -5.953298E-03 * pow(M_e, 4) + 1.776048E-01 * pow(M_e, 3) - 1.939709E+00 * pow(M_e, 2) + 9.124382E+00 * pow(M_e, 1) - 1.539809E+01;
+        }
+
+        a2 = 5.333333E-02 * pow(M_e, 3) - 7.400000E-01 * pow(M_e, 2) + 3.536667E+00 * pow(M_e, 1) - 6.620000E+00;
+        if(M_e >= 5.5){
+         a2 = -2.475387E-02 * pow(M_e, 4) + 6.806654E-01 * pow(M_e, 3) - 7.027497E+00 * pow(M_e, 2) + 3.240888E+01 * pow(M_e, 1) - 5.694479E+01;
+        }
+
+        a3 = 9.333333E-03 * pow(M_e, 3) - 1.220000E-01 * pow(M_e, 2) + 4.986667E-01 * pow(M_e, 1) - 5.900000E-01;
+        if(M_e >= 5.5){
+         a3 = 1.299084E-03 * pow(M_e, 4) - 3.829186E-02 * pow(M_e, 3) + 4.215650E-01 * pow(M_e, 2) - 2.054308E+00 * pow(M_e, 1) + 3.743436E+00;
+        }
+
+        a4 = 1.327229E-01 * pow(M_e, 3) - 2.011760E+00 * pow(M_e, 2) + 1.035974E+01 * pow(M_e, 1) - 1.834507E+01;
+        if(M_e >= 5.5){
+         a4 = -1.038156E-02 * pow(M_e, 4) + 3.088321E-01 * pow(M_e, 3) - 3.438725E+00 * pow(M_e, 2) + 1.698829E+01 * pow(M_e, 1) - 3.143728E+01;
+        }
+
+        dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
+        su2double mindNdRet = 8.411474E-05 * pow(M_e, 3) - 9.546653E-04 * pow(M_e, 2) - 1.609030E-03 * pow(M_e, 1) + 3.550163E-02;
 
         dNdRet = max(dNdRet, 0.00000000001);
         dNdRet = min(dNdRet, mindNdRet);
