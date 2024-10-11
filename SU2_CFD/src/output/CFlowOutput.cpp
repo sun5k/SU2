@@ -1328,12 +1328,17 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       break;
 
       case TURB_TRANS_MODEL::AFMT:
-      AddVolumeOutput("TempVar1", "TempVar1", "PRIMITIVE", "Wonder Vari1");
-      AddVolumeOutput("TempVar2", "TempVar2", "PRIMITIVE", "Wonder Vari2");
-      AddVolumeOutput("TempVar3", "TempVar3", "PRIMITIVE", "Wonder Vari3");
-      AddVolumeOutput("TempVar4", "TempVar4", "PRIMITIVE", "Wonder Vari4");
-      AddVolumeOutput("TempVar5", "TempVar5", "PRIMITIVE", "Wonder Vari5");
-      AddVolumeOutput("TempVar6", "TempVar6", "PRIMITIVE", "Wonder Vari6");
+      AddVolumeOutput("Me", "Me", "PRIMITIVE", "Me");
+      AddVolumeOutput("H12", "H12", "PRIMITIVE", "H12");
+      AddVolumeOutput("Hk", "Hk", "PRIMITIVE", "Hk");
+      AddVolumeOutput("D_H12", "D_H12", "PRIMITIVE", "D_H12");
+      AddVolumeOutput("l_H12", "l_H12", "PRIMITIVE", "l_H12");
+      AddVolumeOutput("F_growth", "F_growth", "PRIMITIVE", "F_growth");
+      AddVolumeOutput("Ret0", "Ret0", "PRIMITIVE", "Ret0");
+      AddVolumeOutput("Ret", "Ret", "PRIMITIVE", "Ret");
+      AddVolumeOutput("F_crit", "F_crit", "PRIMITIVE", "F_crit");
+      AddVolumeOutput("dNdRet", "dNdRet", "PRIMITIVE", "dNdRet");
+      AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
       break;
 
     case TURB_TRANS_MODEL::INTERMITTENCY :
