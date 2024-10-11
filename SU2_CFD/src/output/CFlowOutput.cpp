@@ -1444,12 +1444,18 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       case TURB_TRANS_MODEL::AFMT:
       SetVolumeOutputValue("AF", iPoint, Node_Trans->GetSolution(iPoint, 0));
       SetVolumeOutputValue("LNINTERMITTENCY", iPoint, Node_Trans->GetSolution(iPoint, 1));
-      SetVolumeOutputValue("TempVar1", iPoint, Node_Trans->GetIntermit_Wonder_Func_var1(iPoint));
-      SetVolumeOutputValue("TempVar2", iPoint, Node_Trans->GetIntermit_Wonder_Func_var2(iPoint));
-      SetVolumeOutputValue("TempVar3", iPoint, Node_Trans->GetIntermit_Wonder_Func_var3(iPoint));
-      SetVolumeOutputValue("TempVar4", iPoint, Node_Trans->GetIntermit_Wonder_Func_var4(iPoint));
-      SetVolumeOutputValue("TempVar5", iPoint, Node_Trans->GetIntermit_Wonder_Func_var5(iPoint));
-      SetVolumeOutputValue("TempVar6", iPoint, Node_Trans->GetIntermit_Wonder_Func_var6(iPoint));
+      SetVolumeOutputValue("Me", iPoint, Node_Trans->GetAFMT_Wonder_Func_var1(iPoint));
+      SetVolumeOutputValue("H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var2(iPoint));
+      SetVolumeOutputValue("Hk", iPoint, Node_Trans->GetAFMT_Wonder_Func_var3(iPoint));
+      SetVolumeOutputValue("D_H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var4(iPoint));
+      SetVolumeOutputValue("l_H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var5(iPoint));
+      SetVolumeOutputValue("F_growth", iPoint, Node_Trans->GetAFMT_Wonder_Func_var6(iPoint));
+      SetVolumeOutputValue("Ret0", iPoint, Node_Trans->GetAFMT_Wonder_Func_var7(iPoint));
+      SetVolumeOutputValue("Ret", iPoint, Node_Trans->GetAFMT_Wonder_Func_var8(iPoint));
+      SetVolumeOutputValue("F_crit", iPoint, Node_Trans->GetAFMT_Wonder_Func_var9(iPoint));
+      SetVolumeOutputValue("dNdRet", iPoint, Node_Trans->GetAFMT_Wonder_Func_var10(iPoint));
+      SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
+      
       SetVolumeOutputValue("RES_AF", iPoint, trans_solver->LinSysRes(iPoint, 0));
       SetVolumeOutputValue("RES_LNINTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 1));
       break;

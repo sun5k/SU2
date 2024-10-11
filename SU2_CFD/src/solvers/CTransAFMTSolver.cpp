@@ -290,26 +290,15 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
       }
     
     nodes -> SetIntermittency(iPoint, lnIntermittency);
-    //wonder 1 = HL, wonder 2 = H12, wonder 3 = Hk, wonder 4 = RevRet, wonder 5 = dNdRet, wonder 6 = Ret0;
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, Hk, RevRet, dNdRet, Ret0);
-    //wonder 1 = HL, wonder 2 = H12, wonder 3 = dNdRet, wonder 4 = Ret0, wonder 5 = F_on, wonder 6 = F_growth;
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, dNdRet, Ret0, F_crit, F_growth);
     
-    /*-- production term of Amplification Factor -- Case 1*/
     const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
-    /*-- production term of Amplification Factor -- Case 3*/
-    //const su2double AFg = Density_i * StrainMag_i * F_crit * F_growth * dNdRet;
+    
     const su2double AFgVol = AFg * Volum_i;
-    //wonder 1 = HL, wonder 2 = H12, wonder 3 = dNdRet, wonder 4 = Ret0, wonder 5 = Prod, wonder 6 = Prod * vol;
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, H12, dNdRet, Ret0, AFg, AFgVol);
-    //wonder 1 = Rev, wonder 2 = RevRet, wonder 3 = mu_eL, wonder 4 = rho_eL, wonder 5 = U_eL, wonder 6 = MomThickness;
+    
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, Rev, RevRet, mu_eL, rho_eL, U_eL, MomThickness);
-    //wonder 1 = H12, wonder 2 = Hk, wonder 3 = D_H12, wonder 4 = DHk, wonder 5 = AFg, wonder 6 = AFgVol;
-    nodes -> SetIntermittency_Wonder_Func(iPoint, Ret0, F_crit, H12, dNdRet, M_eL, AFg);
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, HL, RevRet, dNdRet, Ret0, F_crit, F_growth);
-    //nodes -> SetIntermittency_Wonder_Func(iPoint, StrainMag_i, RevRet, dNdRet, Ret0, F_crit, F_growth);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg);
+    
 
   }
   END_SU2_OMP_FOR
@@ -594,8 +583,10 @@ void CTransAFMTSolver::LoadRestart(CGeometry** geometry, CSolver*** solver, CCon
 
         const auto index = counter * Restart_Vars[1] + skipVars;
         for (auto iVar = 0u; iVar < nVar; iVar++) nodes->SetSolution(iPoint_Local, iVar, Restart_Data[index + iVar]);
-        nodes ->SetIntermittency_Wonder_Func(iPoint_Local, Restart_Data[index + 2], Restart_Data[index + 3]
-              , Restart_Data[index + 4], Restart_Data[index + 5], Restart_Data[index + 6], Restart_Data[index + 7]);
+        nodes ->SetAFMT_Wonder_Func(iPoint_Local, Restart_Data[index + 2], Restart_Data[index + 3]
+              , Restart_Data[index + 4], Restart_Data[index + 5], Restart_Data[index + 6], Restart_Data[index + 7]
+              , Restart_Data[index + 8], Restart_Data[index + 9], Restart_Data[index + 10], Restart_Data[index + 11]
+              , Restart_Data[index + 12]);
 
         /*--- Increment the overall counter for how many points have been loaded. ---*/
         counter++;

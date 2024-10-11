@@ -148,7 +148,7 @@ private:
     const su2double diff_i_Gamma = Laminar_Viscosity_i + Eddy_Viscosity_i;
     const su2double diff_j_Gamma = Laminar_Viscosity_j + Eddy_Viscosity_j;
 
-    const su2double diff_AF = 0.5*(diff_i_AF + diff_j_AF) * 2.0;
+    const su2double diff_AF = 0.5*(diff_i_AF + diff_j_AF);
     const su2double diff_Gamma = 0.5*(diff_i_Gamma + diff_j_Gamma);
 
     Flux[0] = diff_AF*Proj_Mean_GradScalarVar[0];
