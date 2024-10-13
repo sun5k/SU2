@@ -40,6 +40,7 @@ class CTransAFMTVariable final : public CTurbVariable {
 protected:
   VectorType TempVar1, TempVar2, TempVar3, TempVar4, TempVar5, TempVar6;
   VectorType TempVar7, TempVar8, TempVar9, TempVar10, TempVar11;
+  VectorType TempVar12, TempVar13, TempVar14, TempVar15;
 
 public:
   /*!
@@ -59,7 +60,8 @@ public:
   ~CTransAFMTVariable() override = default;
 
   void SetAFMT_Wonder_Func(unsigned long iPoint, su2double tempVar1, su2double tempVar2, su2double tempVar3, su2double tempVar4, su2double tempVar5, 
-                                    su2double tempVar6, su2double tempVar7, su2double tempVar8, su2double tempVar9, su2double tempVar10, su2double tempVar11) override;
+                                    su2double tempVar6, su2double tempVar7, su2double tempVar8, su2double tempVar9, su2double tempVar10, 
+                                    su2double tempVar11, su2double tempVar12, su2double tempVar13, su2double tempVar14, su2double tempVar15) override;
 
   /*!
    * \brief Value of Wonder Variable.
@@ -116,6 +118,29 @@ public:
    */
   inline su2double GetAFMT_Wonder_Func_var11(unsigned long iPoint) const override { return TempVar11(iPoint); }
 
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetAFMT_Wonder_Func_var12(unsigned long iPoint) const override { return TempVar12(iPoint); }
+
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetAFMT_Wonder_Func_var13(unsigned long iPoint) const override { return TempVar13(iPoint); }
+
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetAFMT_Wonder_Func_var14(unsigned long iPoint) const override { return TempVar14(iPoint); }
+
+
+  /*!
+   * \brief Value of Wonder Variable.
+   */
+  inline su2double GetAFMT_Wonder_Func_var15(unsigned long iPoint) const override { return TempVar15(iPoint); }
 
 
 };

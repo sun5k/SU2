@@ -51,6 +51,10 @@ CTransAFMTVariable::CTransAFMTVariable(su2double AF, su2double LnIntermittency, 
   TempVar9.resize(nPoint) = 0.0;
   TempVar10.resize(nPoint) = 0.0;
   TempVar11.resize(nPoint) = 0.0;
+  TempVar12.resize(nPoint) = 0.0;
+  TempVar13.resize(nPoint) = 0.0;
+  TempVar14.resize(nPoint) = 0.0;
+  TempVar15.resize(nPoint) = 0.0;
   
 
 }
@@ -58,7 +62,8 @@ CTransAFMTVariable::CTransAFMTVariable(su2double AF, su2double LnIntermittency, 
 
 void CTransAFMTVariable::SetAFMT_Wonder_Func(unsigned long iPoint, su2double var1, su2double var2 
           , su2double var3, su2double var4, su2double var5, su2double var6, su2double var7
-          , su2double var8, su2double var9, su2double var10, su2double var11) {
+          , su2double var8, su2double var9, su2double var10, su2double var11, su2double var12
+          , su2double var13, su2double var14, su2double var15) {
 
   TempVar1(iPoint) = var1;
   TempVar2(iPoint) = var2;
@@ -71,5 +76,9 @@ void CTransAFMTVariable::SetAFMT_Wonder_Func(unsigned long iPoint, su2double var
   TempVar9(iPoint) = var9;
   TempVar10(iPoint) = var10;
   TempVar11(iPoint) = var11;
+  TempVar12(iPoint) = var12;
+  TempVar13(iPoint) = var13;
+  TempVar14(iPoint) = var14;
+  TempVar15(iPoint) = var15;
   
 }

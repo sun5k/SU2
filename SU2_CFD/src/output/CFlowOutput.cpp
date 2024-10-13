@@ -1339,6 +1339,10 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       AddVolumeOutput("F_crit", "F_crit", "PRIMITIVE", "F_crit");
       AddVolumeOutput("dNdRet", "dNdRet", "PRIMITIVE", "dNdRet");
       AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
+      AddVolumeOutput("dist_i", "dist_i", "PRIMITIVE", "dist_i");
+      AddVolumeOutput("Strain_Mag", "Strain_Mag", "PRIMITIVE", "Strain_Mag");
+      AddVolumeOutput("mHk", "mHk", "PRIMITIVE", "mHk");
+      AddVolumeOutput("AFgVol", "AFgVol", "PRIMITIVE", "AFgVol");
       break;
 
     case TURB_TRANS_MODEL::INTERMITTENCY :
@@ -1460,6 +1464,10 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       SetVolumeOutputValue("F_crit", iPoint, Node_Trans->GetAFMT_Wonder_Func_var9(iPoint));
       SetVolumeOutputValue("dNdRet", iPoint, Node_Trans->GetAFMT_Wonder_Func_var10(iPoint));
       SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
+      SetVolumeOutputValue("dist_i", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
+      SetVolumeOutputValue("Strain_Mag", iPoint, Node_Trans->GetAFMT_Wonder_Func_var13(iPoint));
+      SetVolumeOutputValue("mHk", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
+      SetVolumeOutputValue("AFgVol", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
       
       SetVolumeOutputValue("RES_AF", iPoint, trans_solver->LinSysRes(iPoint, 0));
       SetVolumeOutputValue("RES_LNINTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 1));

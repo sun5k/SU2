@@ -1817,7 +1817,8 @@ public:
    */
   inline virtual void SetAFMT_Wonder_Func(unsigned long iPoint, su2double tempVar1, su2double tempVar2, su2double tempVar3, 
                                                     su2double tempVar4, su2double tempVar5, su2double tempVar6, su2double tempVar7,
-                                                    su2double tempVar8, su2double tempVar9, su2double tempVar10, su2double tempVar11 ) {}
+                                                    su2double tempVar8, su2double tempVar9, su2double tempVar10, su2double tempVar11,
+                                                    su2double tempVar12, su2double tempVar13, su2double tempVar14, su2double tempVar15) {}
 
   /*!
    * \brief Set the variables for the intermittency based model(Fu2013).
@@ -1973,6 +1974,34 @@ public:
    * \return the value of the Length scale.
    */
   inline virtual su2double GetAFMT_Wonder_Func_var11(unsigned long iPoint) const {return 0.0;}
+
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetAFMT_Wonder_Func_var12(unsigned long iPoint) const {return 0.0;}
+
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetAFMT_Wonder_Func_var13(unsigned long iPoint) const {return 0.0;}
+
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetAFMT_Wonder_Func_var14(unsigned long iPoint) const {return 0.0;}
+
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetAFMT_Wonder_Func_var15(unsigned long iPoint) const {return 0.0;}
 
 
 

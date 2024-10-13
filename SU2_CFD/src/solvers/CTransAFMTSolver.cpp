@@ -297,7 +297,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double AFgVol = AFg * Volum_i;
     
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, dist_i, Ret0, Ret, F_crit, dNdRet, AFg);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, mHk, AFgVol);
     
 
   }
@@ -586,7 +586,8 @@ void CTransAFMTSolver::LoadRestart(CGeometry** geometry, CSolver*** solver, CCon
         nodes ->SetAFMT_Wonder_Func(iPoint_Local, Restart_Data[index + 2], Restart_Data[index + 3]
               , Restart_Data[index + 4], Restart_Data[index + 5], Restart_Data[index + 6], Restart_Data[index + 7]
               , Restart_Data[index + 8], Restart_Data[index + 9], Restart_Data[index + 10], Restart_Data[index + 11]
-              , Restart_Data[index + 12]);
+              , Restart_Data[index + 12], Restart_Data[index + 13], Restart_Data[index + 14], Restart_Data[index + 15]
+              , Restart_Data[index + 16]);
 
         /*--- Increment the overall counter for how many points have been loaded. ---*/
         counter++;
