@@ -297,7 +297,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double AFgVol = AFg * Volum_i;
     
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, dist_i, Ret0, Ret, F_crit, dNdRet, AFg);
     
 
   }
