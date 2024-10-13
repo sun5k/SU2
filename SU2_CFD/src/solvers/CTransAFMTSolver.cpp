@@ -214,6 +214,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double vel_v = flowNodes->GetVelocity(iPoint, 1);
     const su2double vel_w = (nDim == 3) ? flowNodes->GetVelocity(iPoint, 2) : 0.0;
     const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
+    su2double VorticityMag = 0.0;
 
     rho_eL = pow(rho_inf,gamma_Spec) * p / p_inf;
     rho_eL = pow(rho_eL, 1/gamma_Spec);
@@ -228,6 +229,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
     if(nDim == 2) {
       He = 0.0;
+      VorticityMag = sqrt(flowNodes->GetVorticity(iPoint)[0] * flowNodes->GetVorticity(iPoint)[0] + flowNodes->GetVorticity(iPoint)[1] * flowNodes->GetVorticity(iPoint)[1] );
     }
     else {
       su2double VelocityNormalized[3];
@@ -244,7 +246,8 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
       const su2double unitU = flowNodes->GetVelocity(iPoint, 0)/Velocity_Mag, unitV = flowNodes->GetVelocity(iPoint, 1)/Velocity_Mag, unitW = flowNodes->GetVelocity(iPoint, 2)/Velocity_Mag;
       const su2double vorticity_x = flowNodes->GetVorticity(iPoint)[0], vorticity_y = flowNodes->GetVorticity(iPoint)[1], vorticity_z = flowNodes->GetVorticity(iPoint)[2];
       const su2double UVor_x = unitU * vorticity_x, VVor_y = unitV * vorticity_y, WVor_z = unitW * vorticity_z;
-
+      VorticityMag = sqrt(flowNodes->GetVorticity(iPoint)[0] * flowNodes->GetVorticity(iPoint)[0] + flowNodes->GetVorticity(iPoint)[1] * flowNodes->GetVorticity(iPoint)[1]
+                    + flowNodes->GetVorticity(iPoint)[2] * flowNodes->GetVorticity(iPoint)[2] );
       He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
     }
 
@@ -297,7 +300,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double AFgVol = AFg * Volum_i;
     
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, mHk, AFgVol);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, HL, AFgVol);
     
 
   }

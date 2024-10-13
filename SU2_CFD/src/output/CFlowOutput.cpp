@@ -1341,7 +1341,7 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
       AddVolumeOutput("dist_i", "dist_i", "PRIMITIVE", "dist_i");
       AddVolumeOutput("Strain_Mag", "Strain_Mag", "PRIMITIVE", "Strain_Mag");
-      AddVolumeOutput("mHk", "mHk", "PRIMITIVE", "mHk");
+      AddVolumeOutput("HL", "HL", "PRIMITIVE", "HL");
       AddVolumeOutput("AFgVol", "AFgVol", "PRIMITIVE", "AFgVol");
       break;
 
@@ -1466,7 +1466,7 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
       SetVolumeOutputValue("dist_i", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
       SetVolumeOutputValue("Strain_Mag", iPoint, Node_Trans->GetAFMT_Wonder_Func_var13(iPoint));
-      SetVolumeOutputValue("mHk", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
+      SetVolumeOutputValue("HL", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
       SetVolumeOutputValue("AFgVol", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
       
       SetVolumeOutputValue("RES_AF", iPoint, trans_solver->LinSysRes(iPoint, 0));
