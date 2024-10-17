@@ -266,7 +266,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
     const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
     const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk);
-    const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk);
+    const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk, T_eL);
 
     /*--- Amplification Factor Source term*/
     DHk =Hk;

@@ -727,7 +727,8 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
-        D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
+        //D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
+        D_H12 = 4.8995E-05 * pow(H12, 2) + -1.4000E-03 * H12 * Hk + 5.9840E-01 * H12 + 5.6240E-01 * Hk + 3.8493E-01;
         break;
       }
 
@@ -736,7 +737,7 @@ class TransAFMTCorrelations {
                        CURRENT_FUNCTION);
         break;
     }
-    D_H12 = min(40.0, max(1.0, D_H12));
+    D_H12 = min(40.0, max(3.5, D_H12));
     return D_H12;
   }
 
@@ -745,9 +746,10 @@ class TransAFMTCorrelations {
    * \brief Compute l_H12_y/theta from correlations.
    * \param[in] H12 - Integreated Shape Factor.   
    * \param[in] Hk - Edge Mach number.
+   * \param[in] Te - Edge Temperature.
    * \param[out] l(H12,Hk) - l function.
    */
-  su2double l_H12_Correlations(const su2double H12, const su2double Hk) const {
+  su2double l_H12_Correlations(const su2double H12, const su2double Hk, const su2double Te) const {
   su2double l_H12 = 0.0;
   su2double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0, a6 = 0.0, a7 =0.0;
 
@@ -764,11 +766,15 @@ class TransAFMTCorrelations {
         l_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
         */
         l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
+        
         break;
       }
 
       case AFMT_CORRELATION::sok: {
         l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
+        l_H12 =-2.4791E-04 * pow(H12,2)*Hk + 8.0177E-04 *pow(H12,2) + 6.7812E-06 * H12*Te*Hk + 7.9735E-03 * H12*Hk + -1.9448E-05 *H12*Te + -3.1423E-02 * H12;
+        l_H12 = l_H12 + -1.4847E-04 * Hk*Te + -5.5737E-02 * Hk + - 5.3318E-10 * pow(Te,3) + 9.2202E-07 * pow(Te,2) + -1.5883E-04 * Te + 6.7869E-01;
+        l_H12 = min(0.5, max(l_H12, 0.1));
         break;
       }
 
