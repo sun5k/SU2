@@ -293,14 +293,14 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
       }
     
     nodes -> SetIntermittency(iPoint, lnIntermittency);
-    
+    const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;    
     const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
     
     const su2double AFgVol = AFg * Volum_i;
     
     const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, HL, AFgVol);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, HL, F_onset_Crossflow);
     
 
   }
