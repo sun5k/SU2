@@ -182,6 +182,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
   for (unsigned long iPoint = 0; iPoint < nPoint; iPoint ++) {
 
     // Here the nodes already have the new solution, thus I have to compute everything from scratch
+    const su2double AF = nodes->GetSolution(iPoint,0);
     const su2double lnIntermittency = nodes->GetSolution(iPoint,1);
     /* Ampification Factor term */
     const su2double sos = flowNodes->GetSoundSpeed(iPoint);
@@ -206,6 +207,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double Volum_i = geometry->nodes->GetVolume(iPoint);
     const su2double cordix = geometry->nodes->GetCoord(iPoint,0);
     const su2double cordiy = geometry->nodes->GetCoord(iPoint,1);
+    const su2double Critical_N_Factor = config->GetN_Critical();
 
     su2double DHk = 0.0, lHk = 0.0, mHk = 0.0;
     su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
@@ -262,10 +264,10 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     /*--- Cal H12, Hk, dNdRet, Ret0 ---*/
     const su2double H12 = TransCorrelations.H12_Correlations(HL, T_over_T0, M_eL, Tw_over_Te);
     const su2double Hk = TransCorrelations.Hk_Correlations(HL, H12, M_eL);
-    const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL);
+    const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL, T_eL);
     const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
     const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
-    const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk);
+    const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk, T_eL, M_eL);
     const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk, T_eL);
 
     /*--- Amplification Factor Source term*/
@@ -299,9 +301,9 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
 
     
     const su2double AFgVol = AFg * Volum_i;
-    
-    const su2double MomThickness = Rev / RevRet * mu_eL / rho_eL / U_eL;
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, HL, F_onset_Crossflow2);
+    const su2double F_onset_Secondmode = min(AF/Critical_N_Factor, 2.0);
+    const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow2 );
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, F_onset1, F_onset_Crossflow2);
     
 
   }

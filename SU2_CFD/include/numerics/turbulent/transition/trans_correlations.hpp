@@ -245,8 +245,13 @@ class TransAFMTCorrelations {
         H12 = H12 - 1.7524e+1;
         H12 = H12 * HL * T_over_T0;
         */
+        /*
         H12 = (1.0696e+1 * pow(T_over_T0,2) + 1.4386e+1 * T_over_T0 * M_e - 2.7767e+2 * T_over_T0 - 1.8548e+1 * M_e + 2.2921e+2) * T_over_T0;
         H12 = H12 + 1.7856 * pow(M_e,2) + 5.9571 * M_e - 5.7666e+1;
+        */
+        H12 = (1.7224E+02 * pow(T_over_T0, 3) + (2.0322E+01 * pow(T_over_T0, 2) * M_e)) + (-4.1141E+02 * pow(T_over_T0, 2));
+        H12 = H12 + (1.7533E+00 * pow(M_e, 2)) + (-2.4781E+01 * T_over_T0 * M_e);
+        H12 = H12 + (3.1445E+02 * T_over_T0) + (7.8102E+00 * M_e) - 7.5219E+01;
         H12 = H12 * HL * T_over_T0;
         break;
       }
@@ -280,18 +285,28 @@ class TransAFMTCorrelations {
         a3 = 3.327e-3 * pow(M_e,3) - 4.705e-2 * pow(M_e,2) + 1.867e-2 * M_e + 4.361e-1;
         Hk = a1 * pow(HL,2) + a2 * HL + a3;
         */
+        /*
         a1 = 2.642158e-5 * pow(M_e,5) - 1.047983e-3 * pow(M_e,4) + 1.688650e-2 * pow(M_e,3) - 1.392065e-1 * pow(M_e,2) + 5.936119e-1 * M_e - 1.065709;
         a2 = 1.140608e-4 * pow(M_e,4) - 9.542641e-3 * pow(M_e,3) + 2.129670e-1 * pow(M_e,2) - 1.968956 * M_e + 7.184406;
         a3 = 4.129277e-3 * pow(M_e,4) - 1.256703e-1 * pow(M_e,3) + 1.403225 * pow(M_e,2) - 6.410845 * M_e + 1.309789e+1;
+        */
+        a1 = -6.3666E-01 * exp(-7.1793E-01 * M_e) + -5.2614E-02 * exp(-3.0234E-01 * M_e);
+        a2 = +2.9624E-02 * pow(M_e, 2) - 6.0021E-01 * M_e + 3.5517E+00;
+        a3 = 8.6991E+00 * exp(-4.6608E-01 * M_e) + 3.4913E+00 * exp(8.0897E-03 * M_e);
         Hk = a1 * pow(H12,2) + a2 * H12 + a3;
         Hk = log(Hk);
         break;
       }
 
       case AFMT_CORRELATION::sok: {
+        /*
         a1 = 2.642158e-5 * pow(M_e,5) - 1.047983e-3 * pow(M_e,4) + 1.688650e-2 * pow(M_e,3) - 1.392065e-1 * pow(M_e,2) + 5.936119e-1 * M_e - 1.065709;
         a2 = 1.140608e-4 * pow(M_e,4) - 9.542641e-3 * pow(M_e,3) + 2.129670e-1 * pow(M_e,2) - 1.968956 * M_e + 7.184406;
         a3 = 4.129277e-3 * pow(M_e,4) - 1.256703e-1 * pow(M_e,3) + 1.403225 * pow(M_e,2) - 6.410845 * M_e + 1.309789e+1;
+        */
+        a1 = -6.3666E-01 * exp(-7.1793E-01 * M_e) + -5.2614E-02 * exp(-3.0234E-01 * M_e);
+        a2 = +2.9624E-02 * pow(M_e, 2) - 6.0021E-01 * M_e + 3.5517E+00;
+        a3 = 8.6991E+00 * exp(-4.6608E-01 * M_e) + 3.4913E+00 * exp(8.0897E-03 * M_e);
         Hk = a1 * pow(H12,2) + a2 * H12 + a3;
         Hk = log(Hk);
         break;
@@ -318,7 +333,7 @@ class TransAFMTCorrelations {
    * \param[in] M_e - T/T0.
    * \param[out] Hk - Kinetic Shape Factor.
    */
-  su2double RevRet_Correlations(const su2double H12, const su2double M_e) const {
+  su2double RevRet_Correlations(const su2double H12, const su2double M_e, const su2double T_e) const {
     su2double RevRet = 0.0;
     su2double a1 = 0.0, a2 = 0.0, a3 = 0.0;
 
@@ -333,11 +348,14 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
+        /*
         a1 = 0.0008 * pow(M_e,2) + 0.091 * M_e + 0.1253;
         a2 = -0.0343 * pow(M_e,2) - 0.1322 * M_e + 0.8943;
         a3 = 0.0887 * pow(M_e,2) - 0.6799 * M_e + 2.3288;
-
         RevRet = a1 * pow(log(H12),2) + a2 * log(H12) + a3;
+        */
+        RevRet = -1.4461e-03 * pow(H12, 2) + 1.1681e-07 * H12 * pow(T_e, 2) - 9.8006e-05 * H12 * T_e + 2.3730e-01 * H12 ;
+        RevRet = RevRet - 3.5432e-01 * M_e- 1.9925e-06 * pow(T_e, 2) + 1.8258e-03 * T_e + 2.2939e+00;
         break;
       }
 
@@ -351,7 +369,7 @@ class TransAFMTCorrelations {
       cout << "NaN is tected." << endl;
     }
     */
-    RevRet = max(min(20.0, RevRet),0.5);
+    RevRet = max(min(10.0, RevRet),1.0);
     return RevRet;
   }
 
@@ -707,7 +725,7 @@ class TransAFMTCorrelations {
    * \param[in] M_e - Edge Mach number.
    * \param[out] dNdRet - N factor gradient for Mack 2nd mode.
    */
-  su2double D_H12_Correlations(const su2double H12, const su2double Hk) const {
+  su2double D_H12_Correlations(const su2double H12, const su2double Hk, const su2double T_e, const su2double M_e) const {
     su2double D_H12 = 0.0;
     su2double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0, a6 = 0.0, a7 =0.0;
 
@@ -728,7 +746,8 @@ class TransAFMTCorrelations {
 
       case AFMT_CORRELATION::sok: {
         //D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
-        D_H12 = 4.8995E-05 * pow(H12, 2) + -1.4000E-03 * H12 * Hk + 5.9840E-01 * H12 + 5.6240E-01 * Hk + 3.8493E-01;
+        //D_H12 = 4.8995E-05 * pow(H12, 2) + -1.4000E-03 * H12 * Hk + 5.9840E-01 * H12 + 5.6240E-01 * Hk + 3.8493E-01;
+        D_H12 = -6.0221e-05 * H12 * T_e + 6.0985e-01 * H12 - 9.9217e-02 * M_e - 3.9482e-04 * T_e + 2.6637e+00;
         break;
       }
 
@@ -737,7 +756,7 @@ class TransAFMTCorrelations {
                        CURRENT_FUNCTION);
         break;
     }
-    D_H12 = min(40.0, max(3.5, D_H12));
+    D_H12 = min(40.0, max(3.0, D_H12));
     return D_H12;
   }
 
@@ -749,7 +768,7 @@ class TransAFMTCorrelations {
    * \param[in] Te - Edge Temperature.
    * \param[out] l(H12,Hk) - l function.
    */
-  su2double l_H12_Correlations(const su2double H12, const su2double Hk, const su2double Te) const {
+  su2double l_H12_Correlations(const su2double H12, const su2double Hk, const su2double T_e) const {
   su2double l_H12 = 0.0;
   su2double a1 = 0.0, a2 = 0.0, a3 = 0.0, a4 = 0.0, a5 = 0.0, a6 = 0.0, a7 =0.0;
 
@@ -771,10 +790,19 @@ class TransAFMTCorrelations {
       }
 
       case AFMT_CORRELATION::sok: {
+        /*
         l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
         l_H12 =-2.4791E-04 * pow(H12,2)*Hk + 8.0177E-04 *pow(H12,2) + 6.7812E-06 * H12*Te*Hk + 7.9735E-03 * H12*Hk + -1.9448E-05 *H12*Te + -3.1423E-02 * H12;
         l_H12 = l_H12 + -1.4847E-04 * Hk*Te + -5.5737E-02 * Hk + - 5.3318E-10 * pow(Te,3) + 9.2202E-07 * pow(Te,2) + -1.5883E-04 * Te + 6.7869E-01;
-        l_H12 = min(0.5, max(l_H12, 0.1));
+        */
+        if (T_e < 180) {
+          l_H12 = 4.4574e-05 * pow(H12, 2) - 8.3713e-06 * H12 * T_e - 5.1466e-03 * H12 - 3.5782e-04 * Hk * T_e + 3.6538e-02 * Hk + 9.9770e-06 * pow(T_e, 2) - 2.0356e-03 * T_e + 5.6516e-01;
+        }
+        else {
+          l_H12 = -2.4787e-04 * pow(H12, 2) * Hk + 8.0165e-04 * pow(H12, 2) + 6.7680e-06 * H12 * Hk * T_e + 7.9773e-03 * H12 * Hk - 1.9412e-05 * H12 * T_e; 
+          l_H12 = l_H12 - 3.1433e-02 * H12 - 1.4818e-04 * Hk * T_e - 5.5839e-02 * Hk + 2.4221e-07 * pow(T_e, 2) + 1.0472e-04 * T_e + 6.4849e-01;
+        }
+        l_H12 = min(0.5, max(0.1, l_H12));
         break;
       }
 
@@ -783,7 +811,7 @@ class TransAFMTCorrelations {
                        CURRENT_FUNCTION);
         break;
     }
-    l_H12 = min(0.6, max(0.1, l_H12));
+    l_H12 = min(0.5, max(0.1, l_H12));
     return l_H12;
   }
 

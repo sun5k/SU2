@@ -497,7 +497,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
     const su2double vel_w = (nDim == 3) ? V_i[2 + idx.Velocity()] : 0.0;
 
     const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
-    const su2double Critical_N_Factor = config->GetN_Critical();    
+    const su2double Critical_N_Factor = config->GetN_Critical();
 
     AD::SetPreaccIn(V_i[idx.Density()], V_i[idx.LaminarViscosity()], V_i[idx.EddyViscosity()]);
 
@@ -579,10 +579,10 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       /*--- Cal H12, Hk, dNdRet, Ret0 ---*/
       const su2double H12 = TransCorrelations.H12_Correlations(HL, T_over_T0, M_eL, Tw_over_Te);
       const su2double Hk = TransCorrelations.Hk_Correlations(HL, H12, M_eL);
-      const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL);
+      const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL, T_eL);
       const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
       const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
-      const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk);
+      const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk, T_eL, M_eL);
       const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk, T_eL);
 
       /*--- Amplification Factor Source term*/
@@ -594,8 +594,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       mHk = mHk / l_H12;
 
       const su2double F_growth = max(D_H12 * (1.0 + mHk) / 2.0 * l_H12, 0.0);
-      const su2double Rev = Density_i * dist_i * dist_i * StrainMag_i / (Laminar_Viscosity_i + Eddy_Viscosity_i);
-      const su2double Rev0 = RevRet * Ret0; 
+      const su2double Rev = Density_i * dist_i * dist_i * StrainMag_i / (Laminar_Viscosity_i + Eddy_Viscosity_i);      
       const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
       const su2double Ret = min(rho_eL * U_eL / mu_eL * dist_i / D_H12, 2.0e+3);
 
@@ -614,8 +613,8 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double R_T = Density_i * ScalarVar_i[0] / Laminar_Viscosity_i / ScalarVar_i[1];
       const su2double F_onset_Secondmode = min(TransVar_i[0]/Critical_N_Factor, 2.0);
       const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
-      const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ; ;
-      const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow2 );
+      const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
+      const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
       const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
       //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
       const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
