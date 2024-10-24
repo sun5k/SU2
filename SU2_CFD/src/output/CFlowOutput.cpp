@@ -1463,9 +1463,9 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       SetVolumeOutputValue("F_onset3_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var7(iPoint));
       SetVolumeOutputValue("Pg_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var8(iPoint));
       SetVolumeOutputValue("Dg_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var9(iPoint));
-      SetVolumeOutputValue("dNdRet", iPoint, Node_Trans->GetAFMT_Wonder_Func_var10(iPoint));
+      SetVolumeOutputValue("F_turb_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var10(iPoint));
       SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
-      SetVolumeOutputValue("F_turb_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
+      SetVolumeOutputValue("dist_i", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
       SetVolumeOutputValue("Strain_Mag", iPoint, Node_Trans->GetAFMT_Wonder_Func_var13(iPoint));
       SetVolumeOutputValue("F_onset_Second", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
       SetVolumeOutputValue("F_onset", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
