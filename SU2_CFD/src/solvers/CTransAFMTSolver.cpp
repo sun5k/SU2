@@ -208,6 +208,8 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double cordix = geometry->nodes->GetCoord(iPoint,0);
     const su2double cordiy = geometry->nodes->GetCoord(iPoint,1);
     const su2double Critical_N_Factor = config->GetN_Critical();
+    const su2double turb_k = turbNodes->GetSolution(iPoint,0);
+    const su2double turb_w = turbNodes->GetSolution(iPoint,1);
 
     su2double DHk = 0.0, lHk = 0.0, mHk = 0.0;
     su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
@@ -299,16 +301,36 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
     const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
-    
+    const su2double c_1 = 100;
+    const su2double c_2 = 0.06;
+    const su2double c_3 = 50;
+
     const su2double AFgVol = AFg * Volum_i;
     const su2double F_onset_Secondmode = min(AF/Critical_N_Factor, 2.0);
     const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
     const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
     //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
     const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
-
     const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
+    const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
+    const su2double Pg = c_1 * Density_i * StrainMag_i * F_onset * (1.0 - exp(lnIntermittency));
+    const su2double Dg = c_2 * Density_i * VorticityMag * F_turb * (c_3 * exp(lnIntermittency) - 1.0);
+
+    const su2double R_T = Density_i * turb_k / Laminar_Viscosity_i / turb_w;
+    const su2double F_onset3_Liu = max(1.0 - pow(R_T / 2.5, 3), 0.0);    
+
+
+
+
+
+
+    
+    const su2double F_onset_Liu = max(F_onset2 - F_onset3_Liu, 0.0);
+    const su2double F_turb_Liu = exp(-pow( R_T / 4.0,4));
+    const su2double Pg_Liu = c_1 * Density_i * StrainMag_i * F_onset_Liu * (1.0 - exp(lnIntermittency));
+    const su2double Dg_Liu = c_2 * Density_i * VorticityMag * F_turb_Liu * (c_3 * exp(lnIntermittency) - 1.0);
+
+    nodes -> SetAFMT_Wonder_Func(iPoint, F_onset3, Pg, Dg, F_turb, R_T, F_onset, F_onset3_Liu, Pg_Liu, Dg_Liu, F_turb_Liu, AFg, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
     
 
   }

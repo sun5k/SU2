@@ -1328,16 +1328,16 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       break;
 
       case TURB_TRANS_MODEL::AFMT:
-      AddVolumeOutput("Me", "Me", "PRIMITIVE", "Me");
-      AddVolumeOutput("H12", "H12", "PRIMITIVE", "H12");
-      AddVolumeOutput("Hk", "Hk", "PRIMITIVE", "Hk");
-      AddVolumeOutput("D_H12", "D_H12", "PRIMITIVE", "D_H12");
-      AddVolumeOutput("l_H12", "l_H12", "PRIMITIVE", "l_H12");
-      AddVolumeOutput("F_growth", "F_growth", "PRIMITIVE", "F_growth");
-      AddVolumeOutput("Ret0", "Ret0", "PRIMITIVE", "Ret0");
-      AddVolumeOutput("Ret", "Ret", "PRIMITIVE", "Ret");
-      AddVolumeOutput("F_crit", "F_crit", "PRIMITIVE", "F_crit");
-      AddVolumeOutput("dNdRet", "dNdRet", "PRIMITIVE", "dNdRet");
+      AddVolumeOutput("F_onset3", "F_onset3", "PRIMITIVE", "F_onset3");
+      AddVolumeOutput("Pg", "Pg", "PRIMITIVE", "Pg");
+      AddVolumeOutput("Dg", "Dg", "PRIMITIVE", "Dg");
+      AddVolumeOutput("F_turb", "F_turb", "PRIMITIVE", "F_turb");
+      AddVolumeOutput("R_T", "R_T", "PRIMITIVE", "R_T");
+      AddVolumeOutput("F_onset", "F_onset", "PRIMITIVE", "F_onset");
+      AddVolumeOutput("F_onset3_Liu", "F_onset3_Liu", "PRIMITIVE", "F_onset3_Liu");
+      AddVolumeOutput("Pg_Liu", "Pg_Liu", "PRIMITIVE", "Pg_Liu");
+      AddVolumeOutput("Dg_Liu", "Dg_Liu", "PRIMITIVE", "Dg_Liu");
+      AddVolumeOutput("F_turb_Liu", "F_turb_Liu", "PRIMITIVE", "F_turb_Liu");
       AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
       AddVolumeOutput("dist_i", "dist_i", "PRIMITIVE", "dist_i");
       AddVolumeOutput("Strain_Mag", "Strain_Mag", "PRIMITIVE", "Strain_Mag");
@@ -1451,20 +1451,21 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       break;
 
       case TURB_TRANS_MODEL::AFMT:
+      //nodes -> SetAFMT_Wonder_Func(iPoint, F_onset3, Pg, Dg, F_turb, R_T, F_onset, F_onset3_Liu, Pg_Liu, Dg_Liu, F_turb_Liu, AFg, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
       SetVolumeOutputValue("AF", iPoint, Node_Trans->GetSolution(iPoint, 0));
       SetVolumeOutputValue("LNINTERMITTENCY", iPoint, Node_Trans->GetSolution(iPoint, 1));
-      SetVolumeOutputValue("Me", iPoint, Node_Trans->GetAFMT_Wonder_Func_var1(iPoint));
-      SetVolumeOutputValue("H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var2(iPoint));
-      SetVolumeOutputValue("Hk", iPoint, Node_Trans->GetAFMT_Wonder_Func_var3(iPoint));
-      SetVolumeOutputValue("D_H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var4(iPoint));
-      SetVolumeOutputValue("l_H12", iPoint, Node_Trans->GetAFMT_Wonder_Func_var5(iPoint));
-      SetVolumeOutputValue("F_growth", iPoint, Node_Trans->GetAFMT_Wonder_Func_var6(iPoint));
-      SetVolumeOutputValue("Ret0", iPoint, Node_Trans->GetAFMT_Wonder_Func_var7(iPoint));
-      SetVolumeOutputValue("Ret", iPoint, Node_Trans->GetAFMT_Wonder_Func_var8(iPoint));
-      SetVolumeOutputValue("F_crit", iPoint, Node_Trans->GetAFMT_Wonder_Func_var9(iPoint));
+      SetVolumeOutputValue("F_onset3", iPoint, Node_Trans->GetAFMT_Wonder_Func_var1(iPoint));
+      SetVolumeOutputValue("Pg", iPoint, Node_Trans->GetAFMT_Wonder_Func_var2(iPoint));
+      SetVolumeOutputValue("Dg", iPoint, Node_Trans->GetAFMT_Wonder_Func_var3(iPoint));
+      SetVolumeOutputValue("F_turb", iPoint, Node_Trans->GetAFMT_Wonder_Func_var4(iPoint));
+      SetVolumeOutputValue("R_T", iPoint, Node_Trans->GetAFMT_Wonder_Func_var5(iPoint));
+      SetVolumeOutputValue("F_onset", iPoint, Node_Trans->GetAFMT_Wonder_Func_var6(iPoint));
+      SetVolumeOutputValue("F_onset3_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var7(iPoint));
+      SetVolumeOutputValue("Pg_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var8(iPoint));
+      SetVolumeOutputValue("Dg_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var9(iPoint));
       SetVolumeOutputValue("dNdRet", iPoint, Node_Trans->GetAFMT_Wonder_Func_var10(iPoint));
       SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
-      SetVolumeOutputValue("dist_i", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
+      SetVolumeOutputValue("F_turb_Liu", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
       SetVolumeOutputValue("Strain_Mag", iPoint, Node_Trans->GetAFMT_Wonder_Func_var13(iPoint));
       SetVolumeOutputValue("F_onset_Second", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
       SetVolumeOutputValue("F_onset", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));

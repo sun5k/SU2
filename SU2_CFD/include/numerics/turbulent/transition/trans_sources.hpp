@@ -616,11 +616,12 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
       const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
       const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
-      //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
-      const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
+      const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
+      //const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
 
       const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
-      const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
+      //const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
+      const su2double F_turb = exp(-pow( R_T / 4.0,4));
 
       
       /*-- production term of Amplification Factor -- Case 1*/
@@ -631,7 +632,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
 
 
       /*-- production term of Intermeittency(Gamma) --*/
-      const su2double Pg = c_1 * Density_i * StrainMag_i * F_onset * (1 - exp(TransVar_i[1]));
+      const su2double Pg = c_1 * Density_i * StrainMag_i * F_onset * (1.0 - exp(TransVar_i[1]));
 
       /*-- destruction term of Intermeittency(Gamma) --*/
       const su2double Dg = c_2 * Density_i * VorticityMag * F_turb * (c_3 * exp(TransVar_i[1]) - 1.0);
