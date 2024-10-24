@@ -302,8 +302,13 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     
     const su2double AFgVol = AFg * Volum_i;
     const su2double F_onset_Secondmode = min(AF/Critical_N_Factor, 2.0);
-    const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow2 );
-    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, F_onset1, F_onset_Crossflow2);
+    const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
+    const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
+    //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
+    const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
+
+    const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
+    nodes -> SetAFMT_Wonder_Func(iPoint, M_eL, H12, Hk, D_H12, l_H12, F_growth, Ret0, Ret, F_crit, dNdRet, AFg, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
     
 
   }
