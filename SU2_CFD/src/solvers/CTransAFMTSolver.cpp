@@ -330,7 +330,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double Pg_Liu = c_1 * Density_i * StrainMag_i * F_onset_Liu * (1.0 - exp(lnIntermittency));
     const su2double Dg_Liu = c_2 * Density_i * VorticityMag * F_turb_Liu * (c_3 * exp(lnIntermittency) - 1.0);
 
-    nodes -> SetAFMT_Wonder_Func(iPoint, F_onset3, Pg, Dg, F_turb, R_T, F_onset, F_onset3_Liu, Pg_Liu, Dg_Liu, F_turb_Liu, AFg, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
+    nodes -> SetAFMT_Wonder_Func(iPoint, F_onset3, Pg, Dg, F_turb, R_T, F_onset, F_onset3_Liu, Pg_Liu, Dg_Liu, F_turb_Liu, H12, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
     
 
   }

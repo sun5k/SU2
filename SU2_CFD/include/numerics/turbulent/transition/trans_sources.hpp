@@ -620,8 +620,8 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       //const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
 
       const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
-      //const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
-      const su2double F_turb = exp(-pow( R_T / 4.0,4));
+      const su2double F_turb = exp(-pow( Eddy_Viscosity_i / 2.0/ Laminar_Viscosity_i ,4));
+      //const su2double F_turb = exp(-pow( R_T / 4.0,4));
 
       
       /*-- production term of Amplification Factor -- Case 1*/
