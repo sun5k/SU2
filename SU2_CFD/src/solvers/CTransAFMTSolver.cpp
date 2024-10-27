@@ -267,7 +267,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double H12 = TransCorrelations.H12_Correlations(HL, T_over_T0, M_eL, Tw_over_Te);
     const su2double Hk = TransCorrelations.Hk_Correlations(HL, H12, M_eL);
     const su2double RevRet = TransCorrelations.RevRet_Correlations(H12, M_eL, T_eL);
-    const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL);
+    const su2double dNdRet = TransCorrelations.dNdRet_Correlations(H12, M_eL, T_eL);
     const su2double Ret0 = TransCorrelations.Ret0_Correlations(H12, Hk, M_eL);
     const su2double D_H12 = TransCorrelations.D_H12_Correlations(H12, Hk, T_eL, M_eL);
     const su2double l_H12 = TransCorrelations.l_H12_Correlations(H12, Hk, T_eL);
@@ -316,21 +316,14 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     const su2double Pg = c_1 * Density_i * StrainMag_i * F_onset * (1.0 - exp(lnIntermittency));
     const su2double Dg = c_2 * Density_i * VorticityMag * F_turb * (c_3 * exp(lnIntermittency) - 1.0);
 
-    const su2double R_T = Density_i * turb_k / Laminar_Viscosity_i / turb_w;
-    const su2double F_onset3_Liu = max(1.0 - pow(R_T / 2.5, 3), 0.0);    
+    //const su2double R_T = Density_i * turb_k / Laminar_Viscosity_i / turb_w;
+    //const su2double F_onset3_Liu = max(1.0 - pow(R_T / 2.5, 3), 0.0);    
+    //const su2double F_onset_Liu = max(F_onset2 - F_onset3_Liu, 0.0);
+    //const su2double F_turb_Liu = exp(-pow( R_T / 4.0,4));
+    //const su2double Pg_Liu = c_1 * Density_i * StrainMag_i * F_onset_Liu * (1.0 - exp(lnIntermittency));
+    //const su2double Dg_Liu = c_2 * Density_i * VorticityMag * F_turb_Liu * (c_3 * exp(lnIntermittency) - 1.0);
 
-
-
-
-
-
-    
-    const su2double F_onset_Liu = max(F_onset2 - F_onset3_Liu, 0.0);
-    const su2double F_turb_Liu = exp(-pow( R_T / 4.0,4));
-    const su2double Pg_Liu = c_1 * Density_i * StrainMag_i * F_onset_Liu * (1.0 - exp(lnIntermittency));
-    const su2double Dg_Liu = c_2 * Density_i * VorticityMag * F_turb_Liu * (c_3 * exp(lnIntermittency) - 1.0);
-
-    nodes -> SetAFMT_Wonder_Func(iPoint, F_onset3, Pg, Dg, F_turb, R_T, F_onset, F_onset3_Liu, Pg_Liu, Dg_Liu, F_turb_Liu, H12, dist_i, StrainMag_i, F_onset_Secondmode, F_onset);
+    nodes -> SetAFMT_Wonder_Func(iPoint, HL, Hk, H12, dNdRet, Ret0, F_growth, D_H12, l_H12, Ret, F_crit, dist_i, StrainMag_i, F_onset_Crossflow2, F_onset, AFg);
     
 
   }
