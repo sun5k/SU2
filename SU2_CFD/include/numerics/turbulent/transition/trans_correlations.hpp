@@ -490,7 +490,8 @@ class TransAFMTCorrelations {
 
 
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
-        su2double mindNdRet = 1.3576E-04*pow(M_e,3) - 1.3149E-03*pow(M_e,2) - 2.2287E-03*pow(M_e,1) + 3.95E-02;
+        su2double mindNdRet = -3.3027e-04 * pow(M_e, 3) + 1.1678e-05 * pow(M_e, 2) * T_e + 4.4909e-03 * pow(M_e, 2) - 2.2004e-07 * M_e * pow(T_e, 2) ;
+        mindNdRet = mindNdRet - 4.6365e-05 * M_e * T_e - 3.0232e-02 * M_e + 1.8735e-06 * pow(T_e, 2) - 4.2550e-04 * T_e + 1.3489e-01;
 
         dNdRet = max(dNdRet, 0.00000000001);
         dNdRet = min(dNdRet, mindNdRet);
