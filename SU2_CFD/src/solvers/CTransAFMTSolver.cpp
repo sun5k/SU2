@@ -231,8 +231,8 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     M_eL = U_eL / a_eL;
     T_eL = a_eL * a_eL / gamma_Spec / config->GetGas_Constant();    
     const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
-    if(nDim == 2) {
-      He = 0.0;
+    He = 0.0;
+    if(nDim == 2) {      
       VorticityMag = sqrt(flowNodes->GetVorticity(iPoint)[0] * flowNodes->GetVorticity(iPoint)[0] + flowNodes->GetVorticity(iPoint)[1] * flowNodes->GetVorticity(iPoint)[1] );
     }
     else {

@@ -230,9 +230,9 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
-        //H12 = 2.816 * Tw_over_Te + 0.1189 * HL + 0.1810 * M_e * M_e - 0.2772;
-        H12 = (9.2706e+1 * pow(T_over_T0,2) + 1.2516e+1 * T_over_T0 * M_e - 2.4463e+2 * T_over_T0 - 1.6690e+1 * M_e + 2.0717e+2) * T_over_T0;
-        H12 = H12 + 1.7872 * pow(M_e,2) + 5.4920 * M_e - 5.3168e+1;
+        H12 = (1.7224E+02 * pow(T_over_T0, 3) + (2.0322E+01 * pow(T_over_T0, 2) * M_e)) + (-4.1141E+02 * pow(T_over_T0, 2));
+        H12 = H12 + (1.7533E+00 * pow(M_e, 2)) + (-2.4781E+01 * T_over_T0 * M_e);
+        H12 = H12 + (3.1445E+02 * T_over_T0) + (7.8102E+00 * M_e) - 7.5219E+01;
         H12 = H12 * HL * T_over_T0;
         break;
       }
@@ -339,11 +339,8 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
-        a1 = 0.0008 * pow(M_e,2) + 0.0932 * M_e + 0.1109;
-        a2 = -0.0356 * pow(M_e,2) - 0.1249 * M_e + 0.9068;
-        a3 = 0.0924 * pow(M_e,2) - 0.7116 * M_e + 2.3833;
-
-        RevRet = a1 * pow(log(H12),2) + a2 * log(H12) + a3;
+        RevRet = -1.4461e-03 * pow(H12, 2) + 1.1681e-07 * H12 * pow(T_e, 2) - 9.8006e-05 * H12 * T_e + 2.3730e-01 * H12 ;
+        RevRet = RevRet - 3.5432e-01 * M_e- 1.9925e-06 * pow(T_e, 2) + 1.8258e-03 * T_e + 2.2939e+00;
         break;
       }
 
@@ -393,6 +390,13 @@ class TransAFMTCorrelations {
         a2 = -1.255e-3 * pow(M_e,2) + 1.581e-1 * M_e - 1.605;
         a3 = 2.958e-5 *  pow(M_e,2) - 1.277e-3 * M_e + 1.164e-2;
         a4 = -9.993e-4 * pow(M_e,3) + 1.769e-2 * pow(M_e,2) - 9.183e-2 * M_e + 1.115e-1;
+
+        a1 = -8.0e-04 * pow(M_e, 2) - 2.6842e-06 * M_e * T_e + 1.0332e-2 * M_e +2.5737e-5 * T_e - 3.1678e-02;
+        a2 = -1.8325e-1 * pow(M_e, 2) + 1.9357e-04 * M_e * T_e + 2.7439 * M_e -2.9283e-3 * T_e - 1.05156e+1;
+        a3 = 5.2604e-4 * pow(M_e, 2) - 3.9270e-06 * M_e * T_e - 7.9957e-3 * M_e +3.9270e-5 * T_e +3.2449e-2;
+        a4 = -7.6526e-3 * pow(M_e, 2) + 4.3104e-05 * M_e * T_e + 1.1068e-1 * M_e -3.7388e-4 * T_e -3.9663e-1;
+
+
         dNdRet = a1 * exp(a2 * H12) + a3 * exp(a4 * H12);
         dNdRet = min(dNdRet, 0.02);
         break;
@@ -693,10 +697,14 @@ class TransAFMTCorrelations {
 
     switch (options.Correlation) {
       case AFMT_CORRELATION::Liu2023: {
-        a1 = 2.704e-1 *  pow(M_e,2) - 5.310 * M_e + 32.16;
-        a2 = -1.423e-3 * pow(M_e,3) + 2.791e-2 * pow(M_e,2) - 1.610e-1 * M_e - 3.092;
-        Ret0 = a1 * pow(Hk,a2) + 2.0;
-        Ret0 = pow(10,Ret0);
+        a1 = - 7.8698E-04 * pow(M_e,3) + 1.8019E-02 * pow(M_e,2) - 1.3741E-01 * M_e + 3.5579E-01;
+        a2 = + 8.8805E-03 * pow(M_e,3) - 1.7327E-01 * pow(M_e,2) + 1.0372E+00 * M_e - 6.0120E-02;
+        a3 = + 8.2566E-03 * pow(M_e,3) - 1.4756E-01 * pow(M_e,2) + 1.6266E+00 * M_e - 6.5092E+00;
+
+
+        Ret0 = (a1 * pow(H12,2) + a2 * H12 + a3) / (H12 - 1.5);
+        Ret0 = max(1.9, min(Ret0,5.0));
+        Ret0 = pow(10, Ret0);
         break;
       }
 
@@ -771,7 +779,7 @@ class TransAFMTCorrelations {
         a7 = 1.3950e+1; 
         D_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
         */
-        D_H12 = 0.4572 * H12 + 0.386 * Hk + 0.04384 * H12 * Hk - 0.0002832 * pow(H12,2) + 1.164;
+        D_H12 = -6.0221e-05 * H12 * T_e + 6.0985e-01 * H12 - 9.9217e-02 * M_e - 3.9482e-04 * T_e + 2.6637e+00;
         break;
       }
 
@@ -815,8 +823,14 @@ class TransAFMTCorrelations {
         a7 = 1.3950e+1; 
         l_H12 = a1 * pow(H12, 2) * Hk + a2 * pow(H12, 2) + a3 * pow(H12, 1) + a4 * pow(Hk, 2) + a5 * pow(Hk, 1) + a6 * H12 * Hk + a7;
         */
-        l_H12 = 0.1529 - 0.002641 * H12 + 0.2895 * Hk + 0.0005796 * pow(H12,2) - 0.01232 * H12 * Hk - 0.06548 * pow(Hk,2) - 8.154e-07 * pow(H12,3) - 0.0001493 * pow(H12,2) * Hk + 0.003404 * H12 * pow(Hk,2); //polyfitting
-        
+        if (T_e < 180) {
+          l_H12 = 4.4574e-05 * pow(H12, 2) - 8.3713e-06 * H12 * T_e - 5.1466e-03 * H12 - 3.5782e-04 * Hk * T_e + 3.6538e-02 * Hk + 9.9770e-06 * pow(T_e, 2) - 2.0356e-03 * T_e + 5.6516e-01;
+        }
+        else {
+          l_H12 = -2.4787e-04 * pow(H12, 2) * Hk + 8.0165e-04 * pow(H12, 2) + 6.7680e-06 * H12 * Hk * T_e + 7.9773e-03 * H12 * Hk - 1.9412e-05 * H12 * T_e; 
+          l_H12 = l_H12 - 3.1433e-02 * H12 - 1.4818e-04 * Hk * T_e - 5.5839e-02 * Hk + 2.4221e-07 * pow(T_e, 2) + 1.0472e-04 * T_e + 6.4849e-01;
+        }
+        l_H12 = min(0.5, max(0.1, l_H12));
         break;
       }
 
