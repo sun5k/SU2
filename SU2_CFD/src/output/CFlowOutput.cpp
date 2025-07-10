@@ -1471,8 +1471,10 @@ void CFlowOutput::LoadVolumeDataScalar(const CConfig* config, const CSolver* con
       SetVolumeOutputValue("dist_i", iPoint, Node_Trans->GetAFMT_Wonder_Func_var11(iPoint));
       SetVolumeOutputValue("Strain_Mag", iPoint, Node_Trans->GetAFMT_Wonder_Func_var12(iPoint));
       SetVolumeOutputValue("F_onset_Crossflow2", iPoint, Node_Trans->GetAFMT_Wonder_Func_var13(iPoint));
-      SetVolumeOutputValue("F_onset", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
-      SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
+      SetVolumeOutputValue("F_onset1", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
+      SetVolumeOutputValue("F_onset_Crossflow", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
+      //SetVolumeOutputValue("F_onset", iPoint, Node_Trans->GetAFMT_Wonder_Func_var14(iPoint));
+      //SetVolumeOutputValue("AF_Prod", iPoint, Node_Trans->GetAFMT_Wonder_Func_var15(iPoint));
       
       SetVolumeOutputValue("RES_AF", iPoint, trans_solver->LinSysRes(iPoint, 0));
       SetVolumeOutputValue("RES_LNINTERMITTENCY", iPoint, trans_solver->LinSysRes(iPoint, 1));
