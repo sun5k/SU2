@@ -255,6 +255,11 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
       He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
     }
 
+    su2double a1 = 1.882e-4 * M_eL * M_eL * M_eL + 4.544e-3 * M_eL * M_eL -1.954e-1 * M_eL + 1.784;
+    su2double a2 = 1.667e-4 * M_eL * M_eL * M_eL - 2.171e-3 * M_eL * M_eL - 2.937e-2 * M_eL - 0.5902;
+    su2double a3 = -8.928e-4 * M_eL * M_eL * M_eL + 2.041e-2 * M_eL * M_eL + 9.166e-2 * M_eL + 0.4975;
+    su2double F_ratio = a1 * pow(T_eL/Twall,a2) + a3;
+
     su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
     const su2double HL = StrainMag_i * dist_i / U_eL;
     const su2double T_over_T0 = temperautre_local / T0;
@@ -297,7 +302,7 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
         F_crit = 1.0;
         U_over_y = Velocity_Mag / dist_i;
         F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
-        F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
+        F_onset_Crossflow = (DeltaH_CF * Rev)/ (F_ratio * C_cf) ;
       }
     
     nodes -> SetIntermittency(iPoint, lnIntermittency);
