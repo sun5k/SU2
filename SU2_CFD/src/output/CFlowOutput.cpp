@@ -1342,8 +1342,10 @@ void CFlowOutput::SetVolumeOutputFieldsScalarMisc(const CConfig* config) {
       AddVolumeOutput("dist_i", "dist_i", "PRIMITIVE", "dist_i");
       AddVolumeOutput("Strain_Mag", "Strain_Mag", "PRIMITIVE", "Strain_Mag");
       AddVolumeOutput("F_onset_Crossflow2", "F_onset_Crossflow2", "PRIMITIVE", "F_onset_Crossflow2");
-      AddVolumeOutput("F_onset", "F_onset", "PRIMITIVE", "F_onset");
-      AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
+      AddVolumeOutput("F_onset1", "F_onset1", "PRIMITIVE", "F_onset1");
+      AddVolumeOutput("F_onset_Crossflow", "F_onset_Crossflow", "PRIMITIVE", "F_onset_Crossflow");      
+      //AddVolumeOutput("F_onset", "F_onset", "PRIMITIVE", "F_onset");
+      //AddVolumeOutput("AF_Prod", "AF_Prod", "PRIMITIVE", "AF_Prod");
       break;
 
     case TURB_TRANS_MODEL::INTERMITTENCY :

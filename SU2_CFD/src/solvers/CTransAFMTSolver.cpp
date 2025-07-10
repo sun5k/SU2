@@ -291,14 +291,17 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
 
     su2double U_over_y = 0.0;
     su2double F_crit = 0.0 ;
+    su2double F_onset_Crossflow2 = 0.0 ;
+    su2double F_onset_Crossflow = 0.0 ;
     if(Ret >= Ret0 && cordiy > 1.0e-10) {
         F_crit = 1.0;
         U_over_y = Velocity_Mag / dist_i;
+        F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
+        F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
       }
     
     nodes -> SetIntermittency(iPoint, lnIntermittency);
-    const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
-    const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
+    
     const su2double AFg = Density_i * U_over_y * F_crit * F_growth * dNdRet;
 
     const su2double c_1 = 100;
@@ -322,9 +325,10 @@ void CTransAFMTSolver::Postprocessing(CGeometry *geometry, CSolver **solver_cont
     //const su2double F_turb_Liu = exp(-pow( R_T / 4.0,4));
     //const su2double Pg_Liu = c_1 * Density_i * StrainMag_i * F_onset_Liu * (1.0 - exp(lnIntermittency));
     //const su2double Dg_Liu = c_2 * Density_i * VorticityMag * F_turb_Liu * (c_3 * exp(lnIntermittency) - 1.0);
+    const su2double F_onset1_Sec_CF = max( F_onset_Secondmode, F_onset_Crossflow );
 
-    nodes -> SetAFMT_Wonder_Func(iPoint, HL, Hk, H12, dNdRet, Ret0, F_growth, D_H12, l_H12, Ret, F_crit, dist_i, StrainMag_i, F_onset_Crossflow2, F_onset, AFg);
-    
+    //nodes -> SetAFMT_Wonder_Func(iPoint, HL, Hk, H12, dNdRet, Ret0, F_growth, D_H12, l_H12, Ret, F_crit, dist_i, StrainMag_i, F_onset_Crossflow2, F_onset, AFg);
+    nodes -> SetAFMT_Wonder_Func(iPoint, HL, Hk, H12, dNdRet, Ret0, F_growth, D_H12, l_H12, Ret, F_crit, dist_i, StrainMag_i, F_onset_Crossflow2, F_onset1, F_onset_Crossflow);
 
   }
   END_SU2_OMP_FOR
