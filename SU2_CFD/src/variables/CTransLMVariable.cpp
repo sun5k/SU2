@@ -42,6 +42,16 @@ CTransLMVariable::CTransLMVariable(su2double Intermittency, su2double ReThetaT, 
   /*--- Setting CTransLMVariable of intermittency_Eff---*/
   Intermittency_Eff.resize(nPoint) = gammaEff;
   Intermittency_Sep.resize(nPoint) = gammaSep;
+  TempVar1.resize(nPoint) = 0.0;
+  TempVar2.resize(nPoint) = 0.0;
+  TempVar3.resize(nPoint) = 0.0;
+  TempVar4.resize(nPoint) = 0.0;
+  TempVar5.resize(nPoint) = 0.0;
+  TempVar6.resize(nPoint) = 0.0;
+  TempVar7.resize(nPoint) = 0.0;
+  TempVar8.resize(nPoint) = 0.0;
+  TempVar9.resize(nPoint) = 0.0;
+  TempVar10.resize(nPoint) = 0.0;
 
 }
 
