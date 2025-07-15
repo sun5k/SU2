@@ -256,6 +256,111 @@ void CTransLMSolver::Postprocessing(CGeometry *geometry, CSolver **solver_contai
     nodes -> SetIntermittencySep(iPoint, Intermittency_Sep);
     nodes -> SetIntermittencyEff(iPoint, Intermittency_Sep);
 
+    if(config->GetLMParsedOptions().LMFAN) {
+
+      const su2double sos = flowNodes->GetSoundSpeed(iPoint);
+      const su2double rho_inf = config->GetDensity_FreeStream();
+      const su2double p_inf = config->GetPressure_FreeStream();
+      const su2double velU_inf = config->GetVelocity_FreeStream()[0];
+      const su2double velV_inf = config->GetVelocity_FreeStream()[1];
+      const su2double velW_inf = (nDim ==3) ? config->GetVelocity_FreeStream()[2] : 0.0;
+      const su2double velMag_inf = pow(velU_inf*velU_inf + velV_inf * velV_inf + velW_inf *velW_inf,0.5) ;
+      const su2double gamma_Spec = config->GetGamma();
+      const su2double p = flowNodes->GetPressure(iPoint);
+      const su2double sos_inf = pow(config->GetTemperature_FreeStream() * config->GetGas_Constant() * gamma_Spec,0.5);
+      const su2double temperautre_local = flowNodes->GetTemperature(iPoint);
+      const su2double Twall = 300.0;
+      const su2double M_inf = velMag_inf / sos_inf;
+      const su2double T0 = config->GetTemperature_FreeStream() * (1+ (gamma_Spec - 1.0) / 2.0 * M_inf * M_inf );
+      const su2double dist_i = geometry->nodes->GetWall_Distance(iPoint);
+      const su2double StrainMag_i = flowNodes->GetStrainMag(iPoint);
+      const su2double Eddy_Viscosity_i = turbNodes->GetmuT(iPoint);
+      const su2double Laminar_Viscosity_i = flowNodes->GetLaminarViscosity(iPoint);
+      const su2double Density_i = flowNodes->GetDensity(iPoint);
+      const su2double Volum_i = geometry->nodes->GetVolume(iPoint);
+      const su2double cordix = geometry->nodes->GetCoord(iPoint,0);
+      const su2double cordiy = geometry->nodes->GetCoord(iPoint,1);
+      const su2double turb_k = turbNodes->GetSolution(iPoint,0);
+      const su2double turb_w = turbNodes->GetSolution(iPoint,1);
+      su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
+   
+      const su2double vel_u = flowNodes->GetVelocity(iPoint, 0);
+      const su2double vel_v = flowNodes->GetVelocity(iPoint, 1);
+      const su2double vel_w = (nDim == 3) ? flowNodes->GetVelocity(iPoint, 2) : 0.0;
+      const su2double Velocity_Mag = sqrt(vel_u * vel_u + vel_v * vel_v + vel_w * vel_w);
+      su2double VorticityMag = 0.0;
+
+      rho_eL = pow(rho_inf,gamma_Spec) * p / p_inf;
+      rho_eL = pow(rho_eL, 1/gamma_Spec);
+      U_eL = gamma_Spec / ( gamma_Spec - 1.0) * p_inf / rho_inf + 0.5 * velMag_inf * velMag_inf;
+      U_eL -= gamma_Spec / ( gamma_Spec - 1.0) * p / rho_eL;
+      U_eL =pow(U_eL * 2.0, 0.5) ;
+      a_eL = sos_inf * sos_inf /(gamma_Spec - 1.0) + velMag_inf * velMag_inf / 2.0;
+      a_eL -= U_eL * U_eL /2.0;
+      a_eL = pow(a_eL * (gamma_Spec - 1.0), 0.5);
+      M_eL = U_eL / a_eL;
+      T_eL = a_eL * a_eL / gamma_Spec / config->GetGas_Constant();    
+      const su2double mu_eL = 0.00001716 * pow(T_eL / 273.15, 1.5) * (273.15 + 110.4) / (T_eL + 110.4);
+      su2double F_onset1 = Re_v / (2.193 * Corr_Rec);
+      su2double F_onset2 = 1.0;
+      su2double F_onset3 = 1.0;
+      su2double F_onset_s = 0.0;
+      su2double F_onset_cf = 0.0;
+      su2double StreamwiseVort = 0.0;
+      if(nDim == 2) {      
+      VorticityMag = sqrt(flowNodes->GetVorticity(iPoint)[0] * flowNodes->GetVorticity(iPoint)[0] + flowNodes->GetVorticity(iPoint)[1] * flowNodes->GetVorticity(iPoint)[1] );
+      }
+      else {
+        su2double VelocityNormalized[3];
+        VelocityNormalized[0] = vel_u / Velocity_Mag;
+        VelocityNormalized[1] = vel_v / Velocity_Mag;
+        if (nDim == 3) VelocityNormalized[2] = vel_w / Velocity_Mag;
+        StreamwiseVort = 0.0;
+        for (auto iDim = 0u; iDim < nDim; iDim++) {
+          StreamwiseVort += VelocityNormalized[iDim] * flowNodes->GetVorticity(iPoint)[iDim];
+        }
+        StreamwiseVort = abs(StreamwiseVort);
+
+        const su2double unitU = flowNodes->GetVelocity(iPoint, 0)/Velocity_Mag, unitV = flowNodes->GetVelocity(iPoint, 1)/Velocity_Mag, unitW = flowNodes->GetVelocity(iPoint, 2)/Velocity_Mag;
+        const su2double vorticity_x = flowNodes->GetVorticity(iPoint)[0], vorticity_y = flowNodes->GetVorticity(iPoint)[1], vorticity_z = flowNodes->GetVorticity(iPoint)[2];
+        const su2double UVor_x = unitU * vorticity_x, VVor_y = unitV * vorticity_y, WVor_z = unitW * vorticity_z;
+        VorticityMag = sqrt(flowNodes->GetVorticity(iPoint)[0] * flowNodes->GetVorticity(iPoint)[0] + flowNodes->GetVorticity(iPoint)[1] * flowNodes->GetVorticity(iPoint)[1]
+                    + flowNodes->GetVorticity(iPoint)[2] * flowNodes->GetVorticity(iPoint)[2] );
+        He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
+      }
+
+      su2double a1 = 1.882e-4 * M_eL * M_eL * M_eL + 4.544e-3 * M_eL * M_eL -1.954e-1 * M_eL + 1.784;
+      su2double a2 = 1.667e-4 * M_eL * M_eL * M_eL - 2.171e-3 * M_eL * M_eL - 2.937e-2 * M_eL - 0.5902;
+      su2double a3 = -8.928e-4 * M_eL * M_eL * M_eL + 2.041e-2 * M_eL * M_eL + 9.166e-2 * M_eL + 0.4975;
+
+      su2double F_ratio = a1 * pow(T_eL/Twall, a2) + a3;
+
+      su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
+
+      const su2double H_CF = He * dist_i / Velocity_Mag;
+      const su2double DeltaH_CF = H_CF * (1.0 + min(Eddy_Viscosity_i / Laminar_Viscosity_i, 0.4));
+      H_cf = He * dist_i / Velocity_Mag;
+      delH_cf = H_CF * (1.0 + min(Eddy_Viscosity_i / Laminar_Viscosity_i, 0.4));
+
+      su2double F_Tu = config -> GetTke_FreeStream();
+      F_Tu = config -> GetTurbulenceIntensity_FreeStream();
+      if(F_Tu < 0.001){
+        C_cf = 45.0;
+      }
+      F_onset_s = Re_v/F_ratio/Corr_Rec;
+      F_onset_cf = delH_cf * Re_v / (F_ratio * C_cf);
+      F_onset1 = max(F_onset_s,F_onset_cf);
+      F_onset2 = min(max(F_onset1, pow(F_onset1, 4.0)), 2.0);
+      F_onset3 = max(1.0 - pow(R_t / 2.5, 3.0), 0.0);
+      const su2double F_onset = max(F_onset2 - F_onset3, 0.0);
+      
+      nodes -> SetLM_Wonder_Func(iPoint, M_eL, T_eL, rho_eL, StreamwiseVort, He, H_CF, delH_cf, F_onset_s, F_onset_cf, F_onset);
+
+    }
+
+
+
+
   }
   END_SU2_OMP_FOR
 
@@ -542,6 +647,9 @@ void CTransLMSolver::LoadRestart(CGeometry** geometry, CSolver*** solver, CConfi
         for (auto iVar = 0u; iVar < nVar; iVar++) nodes->SetSolution(iPoint_Local, iVar, Restart_Data[index + iVar]);
         nodes ->SetIntermittencySep(iPoint_Local,  Restart_Data[index + 2]);
         nodes ->SetIntermittencyEff(iPoint_Local,  Restart_Data[index + 3]);
+        nodes ->SetLM_Wonder_Func(iPoint_Local, Restart_Data[index + 4], Restart_Data[index + 5], Restart_Data[index + 6], Restart_Data[index + 7]
+              , Restart_Data[index + 8], Restart_Data[index + 9], Restart_Data[index + 10], Restart_Data[index + 11]
+              , Restart_Data[index + 12], Restart_Data[index + 13]);
 
         /*--- Increment the overall counter for how many points have been loaded. ---*/
         counter++;

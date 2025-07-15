@@ -220,7 +220,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
       su2double a2 = 1.667e-4 * Ma_eL * Ma_eL * Ma_eL - 2.171e-3 * Ma_eL * Ma_eL - 2.937e-2 * Ma_eL - 0.5902;
       su2double a3 = -8.928e-4 * Ma_eL * Ma_eL * Ma_eL + 2.041e-2 * Ma_eL * Ma_eL + 9.166e-2 * Ma_eL + 0.4975;
 
-      su2double F_ratio = a1 * pow(T_eL/Twall,a2) + a3;
+      su2double F_ratio = a1 * pow(T_eL/Twall, a2) + a3;
 
       su2double delH_cf = 0.0, H_cf = 0.0, C_cf = 28.0;
 
@@ -230,6 +230,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
       delH_cf = H_CF * (1.0 + min(Eddy_Viscosity_i / Laminar_Viscosity_i, 0.4));
 
       su2double F_Tu = config -> GetTke_FreeStream();
+      F_Tu = config -> GetTurbulenceIntensity_FreeStream();
       if(F_Tu < 0.001){
         C_cf = 45.0;
       }
@@ -237,7 +238,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
 
       if(options.LMFAN){
         F_onset_s = Re_v/F_ratio/Corr_Rec;
-        F_onset_cf = delH_cf * Re_v / F_ratio * C_cf;
+        F_onset_cf = delH_cf * Re_v / (F_ratio * C_cf);
         F_onset1 = max(F_onset_s,F_onset_cf);
       }
 
@@ -329,7 +330,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
           Corr_Ret = 331.5 * f_lambda * pow(Tu - 0.5658, -0.671);
         }
         if(options.LMFAN){
-          su2double fMa_eL = -83.16 * pow(Ma_eL,-4.095) + 1.509;
+          su2double fMa_eL = -83.16 * pow(Ma_eL, -4.095) + 1.509;
           fMa_eL = max(fMa_eL,0.1);
           Corr_Ret = Corr_Ret / fMa_eL;
         }

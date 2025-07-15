@@ -1819,6 +1819,24 @@ public:
                                                     su2double tempVar4, su2double tempVar5, su2double tempVar6, su2double tempVar7,
                                                     su2double tempVar8, su2double tempVar9, su2double tempVar10, su2double tempVar11,
                                                     su2double tempVar12, su2double tempVar13, su2double tempVar14, su2double tempVar15) {}
+/*!
+   * \brief Set the variables for the intermittency based model(Fu2013).
+   * \param[in] val_iPoint - Value of the iPoint.
+   * \param[in] tempvar1 - tempvariable.
+   * \param[in] tempvar2 - tempvariable.
+   * \param[in] tempvar3 - tempvariable.
+   * \param[in] tempvar4 - tempvariable.
+   * \param[in] tempvar5 - tempvariable.
+   * \param[in] tempvar6 - tempvariable.
+   * \param[in] tempvar7 - tempvariable.
+   * \param[in] tempvar8 - tempvariable.
+   * \param[in] tempvar9 - tempvariable.
+   * \param[in] tempvar10 - tempvariable.
+   */
+  inline virtual void SetLM_Wonder_Func(unsigned long iPoint, su2double tempVar1, su2double tempVar2, su2double tempVar3, 
+                                                    su2double tempVar4, su2double tempVar5, su2double tempVar6, su2double tempVar7,
+                                                    su2double tempVar8, su2double tempVar9, su2double tempVar10 ) {}
+
 
   /*!
    * \brief Set the variables for the intermittency based model(Fu2013).
@@ -1865,6 +1883,71 @@ public:
    * \return the value of the Length scale.
    */
   inline virtual su2double GetIntermit_Zhou_Func_Mrel(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var1(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var2(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var3(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var4(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var5(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var6(unsigned long iPoint) const {return 0.0;}
+  
+  
+     /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var7(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var8(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var9(unsigned long iPoint) const {return 0.0;}
+
+   /*!
+   * \brief Get the value of the Length scale.
+   * \return the value of the Length scale.
+   */
+  inline virtual su2double GetLM_Wonder_Func_var10(unsigned long iPoint) const {return 0.0;}
+
+
+
+
 
   /*!
    * \brief Get the value of the Length scale.
