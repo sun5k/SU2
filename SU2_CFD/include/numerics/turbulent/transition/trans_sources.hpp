@@ -610,12 +610,18 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       if(F_Tu < 0.001){
         C_cf = 45.0;
       }
+      su2double a1 = 1.882e-4 * M_eL * M_eL * M_eL + 4.544e-3 * M_eL * M_eL -1.954e-1 * M_eL + 1.784;
+      su2double a2 = 1.667e-4 * M_eL * M_eL * M_eL - 2.171e-3 * M_eL * M_eL - 2.937e-2 * M_eL - 0.5902;
+      su2double a3 = -8.928e-4 * M_eL * M_eL * M_eL + 2.041e-2 * M_eL * M_eL + 9.166e-2 * M_eL + 0.4975;
+
+      su2double F_ratio = a1 * pow(T_eL/300.0, a2) + a3;
 
       //const su2double R_T = Density_i * ScalarVar_i[0] / Laminar_Viscosity_i / ScalarVar_i[1];
       const su2double F_onset_Secondmode = min(TransVar_i[0]/Critical_N_Factor, 2.0);
-      //const su2double F_onset_Crossflow = (DeltaH_CF * Rev)/ (RevRet * C_cf) ;
-      const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
-      const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
+      const su2double F_onset_Crossflow = min((DeltaH_CF * Rev)/ (F_ratio * C_cf), 2.0);
+      //const su2double F_onset_Crossflow2 = (DeltaH_CF * HL * D_H12)/ (RevRet ) ;
+      //const su2double F_onset1 = max( F_onset_Secondmode, 0.0 );
+      const su2double F_onset1 = max( F_onset_Secondmode, F_onset_Crossflow );
       const su2double F_onset2 = min(max(F_onset1, pow(F_onset1, 4)), 2.0);
       //const su2double F_onset3 = max(1.0 - pow(R_T/2.5, 3), 0.0);
       const su2double F_onset3 = max(1.0 - pow(Eddy_Viscosity_i / 3.5/ Laminar_Viscosity_i, 3), 0.0);
