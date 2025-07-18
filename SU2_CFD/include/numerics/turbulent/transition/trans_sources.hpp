@@ -305,7 +305,7 @@ class CSourcePieceWise_TransLM final : public CNumerics {
       const su2double Corr_Ret_lim = 20.0;
       su2double f_lambda = 1.0;
 
-      su2double Retheta_Error = 200.0, Retheta_old = 0.0;
+      su2double Retheta_Error = 200.0, Retheta_old = 0.1;
       su2double lambda = 0.0;
       su2double Corr_Ret = 20.0;
 
@@ -567,7 +567,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
         He = pow( UVor_x * UVor_x + VVor_y * VVor_y + WVor_z * WVor_z,0.5);
       }
 
-      su2double C_cf = 28.0;
+      su2double C_cf = 10.0;
       const su2double HL = StrainMag_i * dist_i / U_eL;
       const su2double T_over_T0 = temperautre_local / T0;
       const su2double Tw_over_Te = Twall / T_eL;
