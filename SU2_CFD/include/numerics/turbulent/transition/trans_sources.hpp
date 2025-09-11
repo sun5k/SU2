@@ -436,7 +436,7 @@ template <class FlowIndices>
 class CSourcePieceWise_TransAFMT final : public CNumerics {
  private:
   const FlowIndices idx; /*!< \brief Object to manage the access to the flow primitives. */
-
+  const bool axisymmetric = false;
   const AFMT_ParsedOptions options;
 
   /*--- AFMT Closure constants ---*/
@@ -451,6 +451,35 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
 
   TransAFMTCorrelations TransCorrelations;
 
+  /*!
+   * \brief Add contribution from convection and diffusion due to axisymmetric formulation to 2D residual
+   */
+  inline void ResidualAxisymmetricConvectionDiffusion() {
+    if (Coord_i[1] < EPS) return;
+
+    const su2double yinv = 1.0 / Coord_i[1];
+    const su2double rhov = Density_i * V_i[idx.Velocity() + 1];
+    const su2double& AF = TransVar_i[0];
+    const su2double& lnInter = TransVar_i[1];
+
+
+    /*--- Convection-Diffusion ---*/
+    const su2double AF_axi = rhov * AF - (Laminar_Viscosity_i + Eddy_Viscosity_i) * TransVar_Grad_i[0][1];
+    const su2double lnInter_axi = rhov * lnInter - (Laminar_Viscosity_i + Eddy_Viscosity_i) * TransVar_Grad_i[1][1];
+
+    /*--- Add terms to the residuals ---*/
+
+    Residual[0] -= yinv * Volume * AF_axi;
+    Residual[1] -= yinv * Volume * lnInter_axi;
+
+    Jacobian_i[0][0] -= yinv * Volume * V_i[idx.Velocity() + 1];
+    Jacobian_i[0][1] -= 0.0;
+    Jacobian_i[1][0] -= 0.0;
+    Jacobian_i[1][1] -= yinv * Volume * V_i[idx.Velocity() + 1];
+
+  }
+
+
  public:
   /*!
    * \brief Constructor of the class.
@@ -459,7 +488,10 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
    * \param[in] config - Definition of the particular problem.
    */
   CSourcePieceWise_TransAFMT(unsigned short val_nDim, unsigned short val_nVar, const CConfig* config)
-      : CNumerics(val_nDim, 2, config), idx(val_nDim, config->GetnSpecies()), options(config->GetAFMTParsedOptions()){
+      : CNumerics(val_nDim, 2, config),
+        idx(val_nDim, config->GetnSpecies()),
+        axisymmetric(config->GetAxisymmetric()),
+        options(config->GetAFMTParsedOptions()) {
     /*--- "Allocate" the Jacobian using the static buffer. ---*/
     Jacobian_i[0] = Jacobian_Buffer;
     Jacobian_i[1] = Jacobian_Buffer + 2;
@@ -647,6 +679,8 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       /*--- Source ---*/
       Residual[0] += (PAF) * Volume;
       Residual[1] += (Pg - Dg) * Volume; 
+
+      if (axisymmetric) ResidualAxisymmetricConvectionDiffusion();
 
       /*--- Implicit part ---*/
       Jacobian_i[0][0] = 0.0;

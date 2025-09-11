@@ -359,6 +359,8 @@ void CTransAFMTSolver::Viscous_Residual(unsigned long iEdge, CGeometry* geometry
 void CTransAFMTSolver::Source_Residual(CGeometry *geometry, CSolver **solver_container,
                                      CNumerics **numerics_container, CConfig *config, unsigned short iMesh) {
 
+  bool axisymmetric = config->GetAxisymmetric();
+
   const bool implicit = (config->GetKind_TimeIntScheme() == EULER_IMPLICIT);
 
   auto* flowNodes = su2staticcast_p<CFlowVariable*>(solver_container[FLOW_SOL]->GetNodes());
@@ -410,13 +412,9 @@ void CTransAFMTSolver::Source_Residual(CGeometry *geometry, CSolver **solver_con
 
     numerics->SetStrainMag(flowNodes->GetStrainMag(iPoint), 0.0);
 
-    /*--- Set coordinate (for debugging) ---*/
-    numerics->SetCoord(geometry->nodes->GetCoord(iPoint), nullptr);    
-
-    /*--- Compute the source term ---*/
-
-    if(iPoint > 13010){
-      su2double t = 0.0;
+    if (axisymmetric){
+      /*--- Set y coordinate ---*/
+      numerics->SetCoord(geometry->nodes->GetCoord(iPoint), geometry->nodes->GetCoord(iPoint));
     }
 
     auto residual = numerics->ComputeResidual(config);
