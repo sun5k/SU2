@@ -560,8 +560,7 @@ class CSourcePieceWise_TransAFMT final : public CNumerics {
       const su2double temperautre_local = V_i[idx.Temperature()];
       const su2double Twall = 300.0;
       const su2double M_inf = velMag_inf / sos_inf;
-      const su2double T0 = config->GetTemperature_FreeStream() * (1+ (gamma_Spec - 1.0) / 2.0 * M_inf * M_inf );
-      const su2double cordix = Coord_i[0], cordiy = Coord_i[1];
+      const su2double T0 = config->GetTemperature_FreeStream() * (1+ (gamma_Spec - 1.0) / 2.0 * M_inf * M_inf );      
 
       su2double DHk = 0.0, lHk = 0.0, mHk = 0.0;
       su2double rho_eL = 0.0, U_eL = 0.0, a_eL = 0.0, T_eL = 0.0, M_eL = 0.0, He = 0.0;
